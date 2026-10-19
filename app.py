@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Đã giới hạn âm thanh click kêu đúng 1 giây rồi tự tắt!")
+st.write("Hành trình của Tom - Âm thanh click 1 giây chỉ áp dụng ở Menu chính!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -88,7 +88,7 @@ flappy_bird_html = f"""
         let sfxVolume = parseFloat(localStorage.getItem("tom_sfx_vol")) || 0.5;
 
         let showAudioModal = false;
-        let clickTimer = null; // Biến quản lý thời gian ngắt âm thanh click
+        let clickTimer = null;
 
         function applyVolumes() {{
             menuMusic.volume = musicMuted ? 0 : musicVolume;
@@ -101,16 +101,15 @@ flappy_bird_html = f"""
 
         applyVolumes();
 
+        // Hàm phát âm thanh click - Chỉ tắt duy nhất file clickSound sau 1s
         function playClickEffect() {{
             if (sfxMuted) return;
             if (clickSound.src) {{
-                // Xóa bộ hẹn giờ cũ nếu bấm liên tục
                 if (clickTimer) clearTimeout(clickTimer);
 
                 clickSound.currentTime = 0;
                 clickSound.play().catch(e => console.log("Click sound blocked:", e));
 
-                // Tự động ngắt âm thanh sau đúng 1000ms (1 giây)
                 clickTimer = setTimeout(() => {{
                     clickSound.pause();
                     clickSound.currentTime = 0;
@@ -417,7 +416,11 @@ flappy_bird_html = f"""
 
         document.addEventListener("keydown", function(e) {{
             if (e.code === "Space") {{
-                playClickEffect();
+                // CHỈ phát tiếng click nếu đang ở ngoài Menu/Cửa hàng/Chọn màn
+                if (gameState !== 'playing') {{
+                    playClickEffect();
+                }}
+
                 if (gameState === 'playing') {{
                     bird.velocity = bird.lift;
                 }} else if (gameState === 'gameover' || levelCompleted) {{
@@ -428,7 +431,10 @@ flappy_bird_html = f"""
         }});
 
         canvas.addEventListener("click", function(e) {{
-            playClickEffect();
+            // CHỈ phát âm thanh click nếu bấm vào các nút bên ngoài Menu, Cửa hàng, Chọn màn
+            if (gameState !== 'playing') {{
+                playClickEffect();
+            }}
 
             let rect = canvas.getBoundingClientRect();
             let mouseX = e.clientX - rect.left;
