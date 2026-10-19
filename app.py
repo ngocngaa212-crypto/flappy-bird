@@ -774,4 +774,52 @@ flappy_bird_html = f"""
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                     if (currentLevel === 5) {{
-                        drawPixelText(t.meetAngelaMsg, canvas.width / 2,
+                        drawPixelText(t.meetAngelaMsg, canvas.width / 2, 85, 24, "center", "#F1C40F");
+
+                        ctx.imageSmoothingEnabled = false;
+                        let tomImg = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
+                        if (tomImg && (tomImg.complete || tomImg.width)) {{
+                            ctx.drawImage(tomImg, 90, 120, 100, 60);
+                        }}
+                        let angelaImgToDraw = cleanedAngelaCanvas || angelaImage;
+                        if (angelaImgToDraw && (angelaImgToDraw.complete || angelaImgToDraw.width)) {{
+                            ctx.drawImage(angelaImgToDraw, 210, 120, 100, 60);
+                        }} else {{
+                            ctx.fillStyle = "#FFC0CB";
+                            ctx.fillRect(210, 120, 100, 60);
+                        }}
+
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 230, 22, "center", "#2ECC71");
+                        drawTomCoinIcon(canvas.width / 2 + 105, 223, 10);
+
+                        drawPixelText(t.continue, canvas.width / 2, 290, 22);
+
+                    }} else {{
+                        drawPixelText(t.passLevel + currentLevel, canvas.width / 2, 110, 28, "center", "#2ECC71");
+                        
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 175, 22, "center", "#F1C40F");
+                        drawTomCoinIcon(canvas.width / 2 + 105, 168, 10);
+                        
+                        if (currentLevel < 5) {{
+                            drawPixelText(t.unlockedNext, canvas.width / 2, 230, 20, "center", "#3498DB");
+                        }}
+                        
+                        drawPixelText(t.continue, canvas.width / 2, 290, 20);
+                    }}
+                }}
+            }}
+        }}
+
+        function loop() {{
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }}
+
+        loop();
+    </script>
+</body>
+</html>
+"""
+
+st.components.v1.html(flappy_bird_html, height=540)
