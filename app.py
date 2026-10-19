@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom")
-st.write("Hành trình của Tom - Phông chữ bo tròn mượt mà, vô cùng dễ nhìn!")
+st.write("Hành trình của Tom - Hình nền tự động đổi luân phiên sau mỗi 3 giây!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -632,13 +632,13 @@ flappy_bird_html = f"""
             frameCount++;
         }}
 
+        // Hàm vẽ hình nền tự động luân phiên đổi sau mỗi 3 giây (3000ms)
         function drawBackground() {{
             let activeBg = bgImage1;
-            if (gameState === 'playing' && playStartTime > 0) {{
-                let elapsedSeconds = (Date.now() - playStartTime) / 1000;
-                if (elapsedSeconds >= 60 && bgImage2.complete && bgImage2.naturalWidth !== 0) {{
-                    activeBg = bgImage2;
-                }}
+            let cycleTime = Math.floor(Date.now() / 3000) % 2; // Tự động luân phiên 0 -> 1 -> 0 sau mỗi 3 giây
+
+            if (cycleTime === 1 && bgImage2.complete && bgImage2.naturalWidth !== 0) {{
+                activeBg = bgImage2;
             }}
 
             if (activeBg.src !== "" && activeBg.complete && activeBg.naturalWidth !== 0) {{
@@ -674,13 +674,11 @@ flappy_bird_html = f"""
             ctx.restore();
         }}
 
-        // Hàm vẽ phông chữ mượt mà hiện đại với đổ bóng mềm dịu mắt
         function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
             ctx.save();
             ctx.font = "bold " + size + "px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
             ctx.textAlign = align;
             
-            // Đổ bóng mềm dịu mắt
             ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
             ctx.shadowBlur = 6;
             ctx.shadowOffsetX = 2;
