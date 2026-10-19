@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom")
-st.write("Hành trình của Tom - Hình nền chỉ tự động đổi khi bạn vào chơi game!")
+st.write("Hành trình của Tom - Hãy tận hưởng trò chơi!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -632,15 +632,12 @@ flappy_bird_html = f"""
             frameCount++;
         }}
 
-        // Hàm vẽ hình nền:
-        // - Ở ngoài Menu: Cố định là background.png
-        // - Khi đang chơi game: Tính theo thời gian chơi (10s nền 1 -> 30s nền 2)
         function drawBackground() {{
             let activeBg = bgImage1;
 
             if (gameState === 'playing' && playStartTime > 0) {{
                 let playedSeconds = Math.floor((Date.now() - playStartTime) / 1000);
-                let cycleTime = playedSeconds % 40; // Chu kỳ 40 giây (10s nền 1 -> 30s nền 2)
+                let cycleTime = playedSeconds % 40;
 
                 if (cycleTime >= 10 && bgImage2.complete && bgImage2.naturalWidth !== 0) {{
                     activeBg = bgImage2;
