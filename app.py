@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Thêm sách hướng dẫn cách chơi (Guidebook) tiện lợi!")
+st.write("Hành trình của Tom - Bảng hướng dẫn nền trắng, chữ dễ đọc!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -156,11 +156,11 @@ flappy_bird_html = f"""
                 locked: "🔒 BỊ KHÓA",
                 unlockedNext: "Đã mở khóa Cấp tiếp theo!",
                 guideTitle: "HƯỚNG DẪN CÁCH CHƠI",
-                guideStep1: "- Dùng phím SPACE hoặc chạm để Tom bay.",
-                guideStep2: "- Vượt qua các ống nước để ghi điểm.",
-                guideStep3: "- Hoàn thành điểm số từng màn để mở màn sau.",
-                guideStep4: "- Sau 60 giây chơi, hình nền sẽ tự thay đổi.",
-                guideStep5: "- Tích xu mua Skin & giải cứu gặp Angela ở màn 5!",
+                guideStep1: "• Nhấn phím SPACE hoặc chạm để Tom bay lên.",
+                guideStep2: "• Khéo léo né các ống nước để ghi điểm.",
+                guideStep3: "• Hoàn thành điểm số từng màn để mở khóa màn sau.",
+                guideStep4: "• Sau 60 giây chơi, hình nền sẽ tự động thay đổi.",
+                guideStep5: "• Tích lũy xu mua Skin & cứu Tom gặp Angela!",
                 closeBtn: "ĐÓNG",
                 lvlNames: {{
                     1: "CẤP 1: KHỞI ĐẦU",
@@ -194,11 +194,11 @@ flappy_bird_html = f"""
                 locked: "🔒 LOCKED",
                 unlockedNext: "Unlocked Next Level!",
                 guideTitle: "GAME GUIDE",
-                guideStep1: "- Press SPACE or click to make Tom fly.",
-                guideStep2: "- Dodge pipes and score points.",
-                guideStep3: "- Reach target scores to unlock next levels.",
-                guideStep4: "- After 60s, the background will change.",
-                guideStep5: "- Collect coins for skins & meet Angela in Level 5!",
+                guideStep1: "• Press SPACE or click to make Tom fly.",
+                guideStep2: "• Dodge pipes carefully to score points.",
+                guideStep3: "• Reach target scores to unlock next levels.",
+                guideStep4: "• After 60s, the background will change.",
+                guideStep5: "• Collect coins for skins & meet Angela!",
                 closeBtn: "CLOSE",
                 lvlNames: {{
                     1: "LEVEL 1: BEGINNING",
@@ -224,7 +224,7 @@ flappy_bird_html = f"""
 
         let gameState = 'menu';
         let pendingBuySkinKey = null;
-        let showGuideModal = false; // Trạng thái bật/tắt bảng hướng dẫn
+        let showGuideModal = false;
 
         let bird = {{
             x: 30,
@@ -281,13 +281,11 @@ flappy_bird_html = f"""
             let mouseY = e.clientY - rect.top;
 
             if (gameState === 'menu') {{
-                // Nút Đổi Ngôn Ngữ (X: 270-360, Y: 15-53)
                 if (mouseX >= 270 && mouseX <= 360 && mouseY >= 15 && mouseY <= 53) {{
                     currentLang = (currentLang === "vi") ? "en" : "vi";
                     localStorage.setItem("tom_lang", currentLang);
                     return;
                 }}
-                // Nút Mở Sách Hướng Dẫn 📖 (X: 215-255, Y: 15-53)
                 if (mouseX >= 215 && mouseX <= 255 && mouseY >= 15 && mouseY <= 53) {{
                     showGuideModal = true;
                     return;
@@ -295,8 +293,7 @@ flappy_bird_html = f"""
             }}
 
             if (showGuideModal) {{
-                // Nút Đóng Sách Hướng Dẫn (X: 130-270, Y: 380-425)
-                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 380 && mouseY <= 425) {{
+                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 385 && mouseY <= 430) {{
                     showGuideModal = false;
                 }}
                 return;
@@ -483,6 +480,14 @@ flappy_bird_html = f"""
             ctx.fillText(text, x, y);
         }}
 
+        // Hàm vẽ chữ nét mỏng / rõ nét trên nền trắng (Không viền đen dày)
+        function drawCleanText(text, x, y, size, align = "center", textColor = "#2C3E50") {{
+            ctx.font = size + "px 'VT323', monospace";
+            ctx.textAlign = align;
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+        }}
+
         function drawPixelPipeSection(x, y, w, h, isCap = false) {{
             ctx.fillStyle = "#73BF2E";
             ctx.fillRect(x, y, w, h);
@@ -540,37 +545,38 @@ flappy_bird_html = f"""
             }}
         }}
 
-        // BẢNG HƯỚNG DẪN CÁCH CHƠI (GUIDEBOOK)
+        // BẢNG HƯỚNG DẪN: NỀN TRẮNG SÁNG, CHỮ ĐEN/XANH ĐẬM DỄ ĐỌC
         function drawGuideModal() {{
             if (!showGuideModal) return;
             let t = i18n[currentLang];
 
-            ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Khung sách hướng dẫn
-            ctx.fillStyle = "#1B2631";
+            // Khung nền trắng
+            ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(20, 50, 360, 400);
-            ctx.strokeStyle = "#F1C40F";
+            ctx.strokeStyle = "#2C3E50";
             ctx.lineWidth = 4;
             ctx.strokeRect(20, 50, 360, 400);
 
-            drawPixelText(t.guideTitle, canvas.width / 2, 85, 26, "center", "#F1C40F");
+            // Tiêu đề sách hướng dẫn (Màu xanh dương đậm)
+            drawCleanText(t.guideTitle, canvas.width / 2, 90, 28, "center", "#1B4F72");
 
-            // Các bước hướng dẫn chi tiết
-            let startY = 135;
+            // Các dòng nội dung hướng dẫn (Màu đen/xám đậm cực kỳ sắc nét, dễ đọc)
+            let startY = 140;
             let stepGap = 42;
-            drawPixelText(t.guideStep1, 35, startY, 19, "left");
-            drawPixelText(t.guideStep2, 35, startY + stepGap, 19, "left");
-            drawPixelText(t.guideStep3, 35, startY + stepGap * 2, 19, "left");
-            drawPixelText(t.guideStep4, 35, startY + stepGap * 3, 19, "left");
-            drawPixelText(t.guideStep5, 35, startY + stepGap * 4, 19, "left");
+            drawCleanText(t.guideStep1, 40, startY, 21, "left", "#2C3E50");
+            drawCleanText(t.guideStep2, 40, startY + stepGap, 21, "left", "#2C3E50");
+            drawCleanText(t.guideStep3, 40, startY + stepGap * 2, 21, "left", "#2C3E50");
+            drawCleanText(t.guideStep4, 40, startY + stepGap * 3, 21, "left", "#2C3E50");
+            drawCleanText(t.guideStep5, 40, startY + stepGap * 4, 21, "left", "#2C3E50");
 
-            // Nút Đóng sách
-            ctx.fillStyle = "#C0392B";
+            // Nút Đóng sách (Màu đỏ nổi bật)
+            ctx.fillStyle = "#E74C3C";
             ctx.fillRect(130, 385, 140, 45);
             ctx.strokeStyle = "#000";
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2;
             ctx.strokeRect(130, 385, 140, 45);
             drawPixelText(t.closeBtn, 200, 415, 22);
         }}
@@ -634,7 +640,7 @@ flappy_bird_html = f"""
                 drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 165, 24);
                 drawTomCoinIcon(canvas.width / 2 + 52, 157, 11);
 
-                // Nút cuốn sách hướng dẫn 📖 ở góc trên
+                // Nút cuốn sách hướng dẫn 📖
                 ctx.fillStyle = "#D35400";
                 ctx.fillRect(215, 15, 42, 38);
                 ctx.strokeStyle = "#FFF";
@@ -662,7 +668,7 @@ flappy_bird_html = f"""
                 ctx.strokeRect(60, 290, 280, 60);
                 drawPixelText(t.shop, canvas.width / 2, 330, 26);
 
-                // Hiển thị bảng hướng dẫn nếu bật
+                // Hiển thị bảng hướng dẫn
                 drawGuideModal();
 
             }} else if (gameState === 'level_select') {{
