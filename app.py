@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Đã tinh chỉnh trọng lực giúp Tom rơi chậm và mượt hơn!")
+st.write("Hành trình của Tom - Tách biệt nhạc chiến thắng màn 1-4 và màn 5 (gặp Angela)!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -33,6 +33,8 @@ angela_data_url = get_image_base64("angela.png")
 menu_music_url = get_audio_base64("menu_music.mp3")
 play_music_url = get_audio_base64("play_music.mp3")
 gameover_music_url = get_audio_base64("gameover_music.mp3")
+win_music_url = get_audio_base64("win_music.mp3")               # Nhạc thắng màn 1, 2, 3, 4
+angela_win_music_url = get_audio_base64("angela_win_music.mp3") # Nhạc thắng màn 5 gặp Angela
 
 flappy_bird_html = f"""
 <!DOCTYPE html>
@@ -63,6 +65,8 @@ flappy_bird_html = f"""
     <audio id="menuMusic" loop src="{menu_music_url}"></audio>
     <audio id="playMusic" loop src="{play_music_url}"></audio>
     <audio id="gameoverMusic" src="{gameover_music_url}"></audio>
+    <audio id="winMusic" src="{win_music_url}"></audio>
+    <audio id="angelaWinMusic" src="{angela_win_music_url}"></audio>
 
     <canvas id="gameCanvas" width="400" height="500"></canvas>
     <script>
@@ -72,6 +76,8 @@ flappy_bird_html = f"""
         const menuMusic = document.getElementById("menuMusic");
         const playMusic = document.getElementById("playMusic");
         const gameoverMusic = document.getElementById("gameoverMusic");
+        const winMusic = document.getElementById("winMusic");
+        const angelaWinMusic = document.getElementById("angelaWinMusic");
 
         let isMuted = localStorage.getItem("tom_muted") === "true";
 
@@ -84,6 +90,16 @@ flappy_bird_html = f"""
             }} else if (gameState === 'gameover') {{
                 if (gameoverMusic.src && gameoverMusic.paused) {{
                     gameoverMusic.play().catch(e => console.log("Autoplay waiting for interaction"));
+                }}
+            }} else if (levelCompleted) {{
+                if (currentLevel === 5) {{
+                    if (angelaWinMusic.src && angelaWinMusic.paused) {{
+                        angelaWinMusic.play().catch(e => console.log("Autoplay waiting for interaction"));
+                    }}
+                }} else {{
+                    if (winMusic.src && winMusic.paused) {{
+                        winMusic.play().catch(e => console.log("Autoplay waiting for interaction"));
+                    }}
                 }}
             }} else {{
                 if (menuMusic.src && menuMusic.paused) {{
@@ -107,14 +123,30 @@ flappy_bird_html = f"""
                 if (!menuMusic.paused) menuMusic.pause();
                 if (!playMusic.paused) playMusic.pause();
                 if (!gameoverMusic.paused) gameoverMusic.pause();
+                if (!winMusic.paused) winMusic.pause();
+                if (!angelaWinMusic.paused) angelaWinMusic.pause();
                 return;
             }}
 
             menuMusic.pause();
             playMusic.pause();
             gameoverMusic.pause();
+            winMusic.pause();
+            angelaWinMusic.pause();
 
-            if (gameState === 'playing') {{
+            if (levelCompleted) {{
+                if (currentLevel === 5) {{
+                    if (angelaWinMusic.src) {{
+                        angelaWinMusic.currentTime = 0;
+                        angelaWinMusic.play().catch(e => console.log("Angela win music blocked:", e));
+                    }}
+                }} else {{
+                    if (winMusic.src) {{
+                        winMusic.currentTime = 0;
+                        winMusic.play().catch(e => console.log("Win music blocked:", e));
+                    }}
+                }}
+            }} else if (gameState === 'playing') {{
                 if (playMusic.src) {{
                     playMusic.currentTime = 0;
                     playMusic.play().catch(e => console.log("Play music blocked:", e));
@@ -313,8 +345,8 @@ flappy_bird_html = f"""
             y: 150,
             width: 125,
             height: 75,
-            gravity: 0.28,  // Đã giảm trọng lực từ 0.35 xuống 0.28 để Tom rơi chậm hơn
-            lift: -6.8,     // Điều chỉnh lực bay nhẹ lại cho tương ứng với trọng lực mới
+            gravity: 0.28,
+            lift: -6.8,
             velocity: 0
         }};
 
@@ -514,6 +546,7 @@ flappy_bird_html = f"""
                             unlockedLevel++;
                             localStorage.setItem("tom_unlocked_level", unlockedLevel);
                         }}
+                        updateMusicState(); // Kích hoạt nhạc chiến thắng tương ứng theo màn
                     }}
                 }}
 
