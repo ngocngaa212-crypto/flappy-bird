@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Tách biệt nhạc chiến thắng màn 1-4 và màn 5 (gặp Angela)!")
+st.write("Hành trình của Tom - Đã giới hạn âm thanh click kêu đúng 1 giây rồi tự tắt!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -33,8 +33,9 @@ angela_data_url = get_image_base64("angela.png")
 menu_music_url = get_audio_base64("menu_music.mp3")
 play_music_url = get_audio_base64("play_music.mp3")
 gameover_music_url = get_audio_base64("gameover_music.mp3")
-win_music_url = get_audio_base64("win_music.mp3")               # Nhạc thắng màn 1, 2, 3, 4
-angela_win_music_url = get_audio_base64("angela_win_music.mp3") # Nhạc thắng màn 5 gặp Angela
+win_music_url = get_audio_base64("win_music.mp3")
+angela_win_music_url = get_audio_base64("angela_win_music.mp3")
+click_sound_url = get_audio_base64("click_sound.mp3")
 
 flappy_bird_html = f"""
 <!DOCTYPE html>
@@ -67,6 +68,7 @@ flappy_bird_html = f"""
     <audio id="gameoverMusic" src="{gameover_music_url}"></audio>
     <audio id="winMusic" src="{win_music_url}"></audio>
     <audio id="angelaWinMusic" src="{angela_win_music_url}"></audio>
+    <audio id="clickSound" src="{click_sound_url}"></audio>
 
     <canvas id="gameCanvas" width="400" height="500"></canvas>
     <script>
@@ -78,11 +80,45 @@ flappy_bird_html = f"""
         const gameoverMusic = document.getElementById("gameoverMusic");
         const winMusic = document.getElementById("winMusic");
         const angelaWinMusic = document.getElementById("angelaWinMusic");
+        const clickSound = document.getElementById("clickSound");
 
-        let isMuted = localStorage.getItem("tom_muted") === "true";
+        let musicMuted = localStorage.getItem("tom_music_muted") === "true";
+        let sfxMuted = localStorage.getItem("tom_sfx_muted") === "true";
+        let musicVolume = parseFloat(localStorage.getItem("tom_music_vol")) || 0.5;
+        let sfxVolume = parseFloat(localStorage.getItem("tom_sfx_vol")) || 0.5;
+
+        let showAudioModal = false;
+        let clickTimer = null; // Biến quản lý thời gian ngắt âm thanh click
+
+        function applyVolumes() {{
+            menuMusic.volume = musicMuted ? 0 : musicVolume;
+            playMusic.volume = musicMuted ? 0 : musicVolume;
+            gameoverMusic.volume = musicMuted ? 0 : musicVolume;
+            winMusic.volume = musicMuted ? 0 : musicVolume;
+            angelaWinMusic.volume = musicMuted ? 0 : musicVolume;
+            clickSound.volume = sfxMuted ? 0 : sfxVolume;
+        }}
+
+        applyVolumes();
+
+        function playClickEffect() {{
+            if (sfxMuted) return;
+            if (clickSound.src) {{
+                // Xóa bộ hẹn giờ cũ nếu bấm liên tục
+                if (clickTimer) clearTimeout(clickTimer);
+
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("Click sound blocked:", e));
+
+                // Tự động ngắt âm thanh sau đúng 1000ms (1 giây)
+                clickTimer = setTimeout(() => {{
+                    clickSound.pause();
+                    clickSound.currentTime = 0;
+                }}, 1000);
+            }}
+        }}
 
         function tryAutoplay() {{
-            if (isMuted) return;
             if (gameState === 'playing') {{
                 if (playMusic.src && playMusic.paused) {{
                     playMusic.play().catch(e => console.log("Autoplay waiting for interaction"));
@@ -119,14 +155,7 @@ flappy_bird_html = f"""
         window.addEventListener('mousemove', handleUserInteraction, {{ once: true }});
 
         function updateMusicState() {{
-            if (isMuted) {{
-                if (!menuMusic.paused) menuMusic.pause();
-                if (!playMusic.paused) playMusic.pause();
-                if (!gameoverMusic.paused) gameoverMusic.pause();
-                if (!winMusic.paused) winMusic.pause();
-                if (!angelaWinMusic.paused) angelaWinMusic.pause();
-                return;
-            }}
+            applyVolumes();
 
             menuMusic.pause();
             playMusic.pause();
@@ -264,6 +293,10 @@ flappy_bird_html = f"""
                 notEnoughCoins: "Bạn không đủ tiền xu!",
                 locked: "🔒 BỊ KHÓA",
                 unlockedNext: "Đã mở khóa Cấp tiếp theo!",
+                audioTitle: "CÀI ĐẶT ÂM THANH",
+                bgMusicLabel: "Nhạc nền (Music):",
+                sfxLabel: "Hiệu ứng (SFX):",
+                closeBtn: "ĐÓNG",
                 guideTitle: "HƯỚNG DẪN CÁCH CHƠI",
                 guideStep1: "• Nhấn SPACE hoặc chạm để Tom",
                 guideStep2: "  bay lên né các ống nước.",
@@ -272,7 +305,6 @@ flappy_bird_html = f"""
                 guideStep5: "• Hoàn thành màn 5 để giúp Tom",
                 guideStep6: "  gặp được tình yêu của anh ấy.",
                 guideWish: "Chúc bạn chơi game vui vẻ!",
-                closeBtn: "ĐÓNG",
                 lvlNames: {{
                     1: "CẤP 1: KHỞI ĐẦU",
                     2: "CẤP 2: VƯỢT THÁC",
@@ -305,6 +337,10 @@ flappy_bird_html = f"""
                 notEnoughCoins: "Not enough coins!",
                 locked: "🔒 LOCKED",
                 unlockedNext: "Unlocked Next Level!",
+                audioTitle: "AUDIO SETTINGS",
+                bgMusicLabel: "Background Music:",
+                sfxLabel: "Sound Effects (SFX):",
+                closeBtn: "CLOSE",
                 guideTitle: "GAME GUIDE",
                 guideStep1: "• Press SPACE or click to make Tom",
                 guideStep2: "  fly up and dodge pipes.",
@@ -313,7 +349,6 @@ flappy_bird_html = f"""
                 guideStep5: "• Complete Level 5 to help Tom",
                 guideStep6: "  meet the love of his life.",
                 guideWish: "Have fun playing the game!",
-                closeBtn: "CLOSE",
                 lvlNames: {{
                     1: "LEVEL 1: BEGINNING",
                     2: "LEVEL 2: WATERFALL",
@@ -382,6 +417,7 @@ flappy_bird_html = f"""
 
         document.addEventListener("keydown", function(e) {{
             if (e.code === "Space") {{
+                playClickEffect();
                 if (gameState === 'playing') {{
                     bird.velocity = bird.lift;
                 }} else if (gameState === 'gameover' || levelCompleted) {{
@@ -392,15 +428,59 @@ flappy_bird_html = f"""
         }});
 
         canvas.addEventListener("click", function(e) {{
+            playClickEffect();
+
             let rect = canvas.getBoundingClientRect();
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
+            if (showAudioModal) {{
+                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 395 && mouseY <= 440) {{
+                    showAudioModal = false;
+                }}
+                if (mouseX >= 220 && mouseX <= 350 && mouseY >= 140 && mouseY <= 175) {{
+                    musicMuted = !musicMuted;
+                    localStorage.setItem("tom_music_muted", musicMuted);
+                    updateMusicState();
+                }}
+                if (mouseX >= 180 && mouseX <= 215 && mouseY >= 185 && mouseY <= 220) {{
+                    musicVolume = Math.max(0, musicVolume - 0.1);
+                    localStorage.setItem("tom_music_vol", musicVolume);
+                    updateMusicState();
+                }}
+                if (mouseX >= 315 && mouseX <= 350 && mouseY >= 185 && mouseY <= 220) {{
+                    musicVolume = Math.min(1, musicVolume + 0.1);
+                    localStorage.setItem("tom_music_vol", musicVolume);
+                    updateMusicState();
+                }}
+                if (mouseX >= 220 && mouseX <= 350 && mouseY >= 255 && mouseY <= 290) {{
+                    sfxMuted = !sfxMuted;
+                    localStorage.setItem("tom_sfx_muted", sfxMuted);
+                    applyVolumes();
+                }}
+                if (mouseX >= 180 && mouseX <= 215 && mouseY >= 300 && mouseY <= 335) {{
+                    sfxVolume = Math.max(0, sfxVolume - 0.1);
+                    localStorage.setItem("tom_sfx_vol", sfxVolume);
+                    applyVolumes();
+                }}
+                if (mouseX >= 315 && mouseX <= 350 && mouseY >= 300 && mouseY <= 335) {{
+                    sfxVolume = Math.min(1, sfxVolume + 0.1);
+                    localStorage.setItem("tom_sfx_vol", sfxVolume);
+                    applyVolumes();
+                }}
+                return;
+            }}
+
+            if (showGuideModal) {{
+                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 410 && mouseY <= 455) {{
+                    showGuideModal = false;
+                }}
+                return;
+            }}
+
             if (gameState === 'menu') {{
                 if (mouseX >= 160 && mouseX <= 200 && mouseY >= 15 && mouseY <= 53) {{
-                    isMuted = !isMuted;
-                    localStorage.setItem("tom_muted", isMuted);
-                    updateMusicState();
+                    showAudioModal = true;
                     return;
                 }}
                 if (mouseX >= 270 && mouseX <= 360 && mouseY >= 15 && mouseY <= 53) {{
@@ -412,13 +492,6 @@ flappy_bird_html = f"""
                     showGuideModal = true;
                     return;
                 }}
-            }}
-
-            if (showGuideModal) {{
-                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 410 && mouseY <= 455) {{
-                    showGuideModal = false;
-                }}
-                return;
             }}
 
             if (pendingBuySkinKey) {{
@@ -502,7 +575,7 @@ flappy_bird_html = f"""
         }}
 
         function update() {{
-            if (gameState !== 'playing' || pendingBuySkinKey || showGuideModal) return;
+            if (gameState !== 'playing' || pendingBuySkinKey || showGuideModal || showAudioModal) return;
 
             let lvl = levels[currentLevel];
             bird.velocity += bird.gravity;
@@ -546,7 +619,7 @@ flappy_bird_html = f"""
                             unlockedLevel++;
                             localStorage.setItem("tom_unlocked_level", unlockedLevel);
                         }}
-                        updateMusicState(); // Kích hoạt nhạc chiến thắng tương ứng theo màn
+                        updateMusicState();
                     }}
                 }}
 
@@ -674,6 +747,50 @@ flappy_bird_html = f"""
             }}
         }}
 
+        function drawAudioModal() {{
+            if (!showAudioModal) return;
+            let t = i18n[currentLang];
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(25, 50, 350, 410);
+            ctx.strokeStyle = "#2C3E50";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(25, 50, 350, 410);
+
+            drawCleanText(t.audioTitle, canvas.width / 2, 95, 26, "center", "#1B4F72");
+
+            drawCleanText(t.bgMusicLabel, 40, 135, 18, "left", "#2C3E50");
+            ctx.fillStyle = musicMuted ? "#C0392B" : "#27AE60";
+            ctx.fillRect(220, 140, 130, 35);
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeRect(220, 140, 130, 35);
+            drawPixelText(musicMuted ? "TẮT (OFF)" : "BẬT (ON)", 285, 164, 18);
+
+            ctx.fillStyle = "#E74C3C"; ctx.fillRect(180, 185, 35, 35); ctx.strokeRect(180, 185, 35, 35);
+            drawPixelText("-", 197, 210, 22);
+            drawCleanText("Vol: " + Math.round(musicVolume * 100) + "%", 255, 210, 18, "center", "#333");
+            ctx.fillStyle = "#27AE60"; ctx.fillRect(315, 185, 35, 35); ctx.strokeRect(315, 185, 35, 35);
+            drawPixelText("+", 332, 210, 22);
+
+            drawCleanText(t.sfxLabel, 40, 250, 18, "left", "#2C3E50");
+            ctx.fillStyle = sfxMuted ? "#C0392B" : "#27AE60";
+            ctx.fillRect(220, 255, 130, 35); ctx.strokeRect(220, 255, 130, 35);
+            drawPixelText(sfxMuted ? "TẮT (OFF)" : "BẬT (ON)", 285, 279, 18);
+
+            ctx.fillStyle = "#E74C3C"; ctx.fillRect(180, 300, 35, 35); ctx.strokeRect(180, 300, 35, 35);
+            drawPixelText("-", 197, 325, 22);
+            drawCleanText("Vol: " + Math.round(sfxVolume * 100) + "%", 255, 325, 18, "center", "#333");
+            ctx.fillStyle = "#27AE60"; ctx.fillRect(315, 300, 35, 35); ctx.strokeRect(315, 300, 35, 35);
+            drawPixelText("+", 332, 325, 22);
+
+            ctx.fillStyle = "#2980B9";
+            ctx.fillRect(130, 395, 140, 45);
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeRect(130, 395, 140, 45);
+            drawPixelText(t.closeBtn, 200, 425, 22);
+        }}
+
         function drawGuideModal() {{
             if (!showGuideModal) return;
             let t = i18n[currentLang];
@@ -767,12 +884,12 @@ flappy_bird_html = f"""
                 drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 165, 24);
                 drawTomCoinIcon(canvas.width / 2 + 52, 157, 11);
 
-                ctx.fillStyle = isMuted ? "#C0392B" : "#27AE60";
+                ctx.fillStyle = (musicMuted && sfxMuted) ? "#C0392B" : "#27AE60";
                 ctx.fillRect(160, 15, 42, 38);
                 ctx.strokeStyle = "#FFF";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(160, 15, 42, 38);
-                drawPixelText(isMuted ? "🔇" : "🔊", 181, 41, 18);
+                drawPixelText("🔊", 181, 41, 18);
 
                 ctx.fillStyle = "#D35400";
                 ctx.fillRect(215, 15, 42, 38);
@@ -801,6 +918,7 @@ flappy_bird_html = f"""
                 drawPixelText(t.shop, canvas.width / 2, 330, 26);
 
                 drawGuideModal();
+                drawAudioModal();
 
             }} else if (gameState === 'level_select') {{
                 drawBackground();
