@@ -53,7 +53,7 @@ flappy_bird_html = f"""
         const birdImage = new Image();
         birdImage.src = "{bird_data_url}";
 
-        // Tự động tách viền đen của ảnh con mèo
+        // Tự động lọc viền đen của ảnh con mèo
         let cleanedBirdCanvas = null;
         birdImage.onload = function() {{
             cleanedBirdCanvas = document.createElement('canvas');
@@ -67,7 +67,6 @@ flappy_bird_html = f"""
                 let data = imgData.data;
                 for (let i = 0; i < data.length; i += 4) {{
                     let r = data[i], g = data[i+1], b = data[i+2];
-                    // Nếu là màu đen hoặc gần đen, biến thành trong suốt
                     if (r < 25 && g < 25 && b < 25) {{
                         data[i + 3] = 0;
                     }}
@@ -92,22 +91,23 @@ flappy_bird_html = f"""
         let gameState = 'menu';
 
         let bird = {{
-            x: 50,
+            x: 30,
             y: 150,
-            width: 70,   /* Phóng to chiều rộng mèo Tom */
-            height: 42,  /* Phóng to chiều cao mèo Tom */
+            width: 120,   /* Phóng cực to mèo Tom để thấy rõ từng chi tiết */
+            height: 72,   /* Tỉ lệ chuẩn kích thước lớn */
             gravity: 0.42, 
             lift: -8.2,      
             velocity: 0
         }};
 
         let currentLevel = 1;
+        // Khoảng cách khe hở giữa các ống được mở rộng thêm để vừa với mèo Tom siêu to
         const levels = {{
-            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 170, spawnRate: 120, targetScore: 3, reward: 10 }},
-            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 160, spawnRate: 110, targetScore: 5, reward: 20 }},
-            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 150, spawnRate: 100, targetScore: 8, reward: 35 }},
-            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 140, spawnRate: 90, targetScore: 12, reward: 50 }},
-            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 130, spawnRate: 80, targetScore: 15, reward: 100 }}
+            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 195, spawnRate: 120, targetScore: 3, reward: 10 }},
+            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 185, spawnRate: 110, targetScore: 5, reward: 20 }},
+            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 175, spawnRate: 100, targetScore: 8, reward: 35 }},
+            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 165, spawnRate: 90, targetScore: 12, reward: 50 }},
+            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 155, spawnRate: 80, targetScore: 15, reward: 100 }}
         }};
 
         let pipes = [];
@@ -219,13 +219,17 @@ flappy_bird_html = f"""
                 spawnPipe();
             }}
 
+            // Tinh chỉnh hitbox va chạm chính xác cho thân mèo Tom
+            let hitboxPaddingX = 18;
+            let hitboxPaddingY = 10;
+
             for (let i = pipes.length - 1; i >= 0; i--) {{
                 pipes[i].x -= lvl.speed;
 
                 if (
-                    bird.x < pipes[i].x + pipes[i].width &&
-                    bird.x + bird.width > pipes[i].x &&
-                    (bird.y < pipes[i].top || bird.y + bird.height > canvas.height - pipes[i].bottom - 45)
+                    (bird.x + hitboxPaddingX) < pipes[i].x + pipes[i].width &&
+                    (bird.x + bird.width - hitboxPaddingX) > pipes[i].x &&
+                    ((bird.y + hitboxPaddingY) < pipes[i].top || (bird.y + bird.height - hitboxPaddingY) > canvas.height - pipes[i].bottom - 45)
                 ) {{
                     gameState = 'gameover';
                 }}
@@ -291,6 +295,8 @@ flappy_bird_html = f"""
             if (currentSkin === 'default') {{
                 let imgToDraw = cleanedBirdCanvas || birdImage;
                 if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
+                    // Bắt buộc giữ nét Pixel khi phóng to
+                    ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
                 }} else {{
                     ctx.fillStyle = "#F4D03F";
@@ -304,9 +310,9 @@ flappy_bird_html = f"""
                 ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
 
                 ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(bird.x + 40, bird.y + 10, 10, 10);
+                ctx.fillRect(bird.x + 75, bird.y + 15, 16, 16);
                 ctx.fillStyle = "#000000";
-                ctx.fillRect(bird.x + 45, bird.y + 13, 4, 4);
+                ctx.fillRect(bird.x + 83, bird.y + 20, 6, 6);
             }}
         }}
 
