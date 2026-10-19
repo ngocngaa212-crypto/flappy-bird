@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Cập nhật mục tiêu điểm số từng màn (10, 20, 30, 40, 50 điểm)!")
+st.write("Hành trình của Tom - Tự động đổi hình nền sau 1 phút chơi!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -16,12 +16,13 @@ def get_image_base64(image_path):
 
 # Đọc các file ảnh từ thư mục GitHub
 bg_data_url = get_image_base64("background.png")
+bg2_data_url = get_image_base64("background2.png") # Đọc ảnh nền thứ 2 sau 1 phút
 normal_data_url = get_image_base64("cat_normal.png") if os.path.exists("cat_normal.png") else get_image_base64("bird.png")
 
-# Đọc 3 file ảnh skin
 rainbow_data_url = get_image_base64("rainbow_Tom.png")
 donut_data_url = get_image_base64("Tom_with_donut.png")
 strong_data_url = get_image_base64("super_strong_Tom.png")
+angela_data_url = get_image_base64("angela.png")
 
 flappy_bird_html = f"""
 <!DOCTYPE html>
@@ -29,7 +30,6 @@ flappy_bird_html = f"""
 <head>
     <meta charset="UTF-8">
     <title>The journey of Tom</title>
-    <!-- Nhúng phông chữ VT323 pixel rõ nét -->
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         body {{
@@ -55,10 +55,13 @@ flappy_bird_html = f"""
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        const bgImage = new Image();
-        bgImage.src = "{bg_data_url}";
+        // Tải 2 hình nền
+        const bgImage1 = new Image();
+        bgImage1.src = "{bg_data_url}";
 
-        // Tải danh sách ảnh skin nhân vật
+        const bgImage2 = new Image();
+        bgImage2.src = "{bg2_data_url}";
+
         const skinImages = {{
             "normal": new Image(),
             "rainbow": new Image(),
@@ -71,8 +74,11 @@ flappy_bird_html = f"""
         skinImages["donut"].src = "{donut_data_url}";
         skinImages["strong"].src = "{strong_data_url}";
 
-        // Tự động lọc viền đen/sẫm cho tất cả ảnh nhân vật
+        const angelaImage = new Image();
+        angelaImage.src = "{angela_data_url}";
+
         const cleanedSkinCanvases = {{}};
+        let cleanedAngelaCanvas = null;
 
         function processSkinImage(key, img) {{
             img.onload = function() {{
@@ -102,7 +108,28 @@ flappy_bird_html = f"""
             processSkinImage(key, skinImages[key]);
         }}
 
-        // Quản lý Ngôn ngữ (Mặc định: 'vi')
+        angelaImage.onload = function() {{
+            let c = document.createElement('canvas');
+            c.width = angelaImage.width;
+            c.height = angelaImage.height;
+            let tCtx = c.getContext('2d');
+            tCtx.drawImage(angelaImage, 0, 0);
+            try {{
+                let imgData = tCtx.getImageData(0, 0, angelaImage.width, angelaImage.height);
+                let data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {{
+                    let r = data[i], g = data[i+1], b = data[i+2];
+                    if (r < 25 && g < 25 && b < 25) {{
+                        data[i + 3] = 0;
+                    }}
+                }}
+                tCtx.putImageData(imgData, 0, 0);
+                cleanedAngelaCanvas = c;
+            }} catch(e) {{
+                cleanedAngelaCanvas = angelaImage;
+            }}
+        }};
+
         let currentLang = localStorage.getItem("tom_lang") || "vi";
 
         const i18n = {{
@@ -113,7 +140,7 @@ flappy_bird_html = f"""
                 back: "<- LÙI",
                 coins: "XU: ",
                 target: "Mục tiêu: ",
-                reward: "Thưởng: ",
+                reward: "Phần thưởng dành cho bạn: ",
                 using: "ĐANG DÙNG",
                 owned: "ĐÃ SỞ HỮU",
                 price: "GIÁ: ",
@@ -123,8 +150,8 @@ flappy_bird_html = f"""
                 cancel: "HỦY",
                 failed: "THẤT BẠI!",
                 retry: "Nhấn Space để chọn lại",
-                completed: "HOÀN THÀNH!",
-                earned: "Thưởng: + ",
+                passLevel: "CHÚC MỪNG BẠN ĐÃ VƯỢT ẢI ",
+                meetAngelaMsg: "Chúc mừng bạn đã giúp Tom gặp được Angela",
                 continue: "Nhấn Space để tiếp tục",
                 notEnoughCoins: "Bạn không đủ tiền xu!",
                 locked: "🔒 BỊ KHÓA",
@@ -134,7 +161,7 @@ flappy_bird_html = f"""
                     2: "CẤP 2: VƯỢT THÁC",
                     3: "CẤP 3: RỪNG SÂU",
                     4: "CẤP 4: THỬ THÁCH",
-                    5: "CẤP 5: ĐỈNH CAO"
+                    5: "CẤP 5: GẶP ANGELA"
                 }}
             }},
             "en": {{
@@ -144,7 +171,7 @@ flappy_bird_html = f"""
                 back: "<- BACK",
                 coins: "COINS: ",
                 target: "Target: ",
-                reward: "Reward: ",
+                reward: "Reward for you: ",
                 using: "EQUIPPED",
                 owned: "OWNED",
                 price: "PRICE: ",
@@ -154,8 +181,8 @@ flappy_bird_html = f"""
                 cancel: "CANCEL",
                 failed: "GAME OVER!",
                 retry: "Press Space to retry",
-                completed: "LEVEL CLEAR!",
-                earned: "Reward: + ",
+                passLevel: "CONGRATULATIONS ON CLEARING LEVEL ",
+                meetAngelaMsg: "Congratulations on helping Tom meet Angela",
                 continue: "Press Space to continue",
                 notEnoughCoins: "Not enough coins!",
                 locked: "🔒 LOCKED",
@@ -165,7 +192,7 @@ flappy_bird_html = f"""
                     2: "LEVEL 2: WATERFALL",
                     3: "LEVEL 3: DEEP FOREST",
                     4: "LEVEL 4: CHALLENGE",
-                    5: "LEVEL 5: PEAK MASTER"
+                    5: "LEVEL 5: MEET ANGELA"
                 }}
             }}
         }};
@@ -196,7 +223,6 @@ flappy_bird_html = f"""
         }};
 
         let currentLevel = 1;
-        // Cập nhật điểm số mục tiêu: Cấp 1: 10đ, Cấp 2: 20đ, Cấp 3: 30đ, Cấp 4: 40đ, Cấp 5: 50đ
         const levels = {{
             1: {{ speed: 1.2, gap: 240, spawnRate: 130, targetScore: 10, reward: 15 }},
             2: {{ speed: 1.35, gap: 230, spawnRate: 120, targetScore: 20, reward: 30 }},
@@ -210,6 +236,7 @@ flappy_bird_html = f"""
         let score = 0;
         let coinsEarnedThisRun = 0;
         let levelCompleted = false;
+        let playStartTime = 0; // Biến tính thời gian chơi (milliseconds)
 
         function resetGame(level) {{
             currentLevel = level;
@@ -220,6 +247,7 @@ flappy_bird_html = f"""
             coinsEarnedThisRun = 0;
             frameCount = 0;
             levelCompleted = false;
+            playStartTime = Date.now(); // Ghi nhận thời điểm bắt đầu màn chơi
             gameState = 'playing';
         }}
 
@@ -374,8 +402,17 @@ flappy_bird_html = f"""
         }}
 
         function drawBackground() {{
-            if (bgImage.src !== "" && bgImage.complete && bgImage.naturalWidth !== 0) {{
-                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            // Kiểm tra thời gian chơi: Nếu đã chơi qua 60 giây (1 phút) thì đổi sang bgImage2
+            let activeBg = bgImage1;
+            if (gameState === 'playing' && playStartTime > 0) {{
+                let elapsedSeconds = (Date.now() - playStartTime) / 1000;
+                if (elapsedSeconds >= 60 && bgImage2.complete && bgImage2.naturalWidth !== 0) {{
+                    activeBg = bgImage2;
+                }}
+            }}
+
+            if (activeBg.src !== "" && activeBg.complete && activeBg.naturalWidth !== 0) {{
+                ctx.drawImage(activeBg, 0, 0, canvas.width, canvas.height);
             }} else {{
                 ctx.fillStyle = "#4FB7DB";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -575,8 +612,8 @@ flappy_bird_html = f"""
 
                     if (isUnlocked) {{
                         drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left");
-                        drawPixelText(t.target + lvl.targetScore + " | " + t.reward + lvl.reward, 35, 100 + i * 68, 18, "left", "#F1C40F");
-                        drawTomCoinIcon(255, 93 + i * 68, 8);
+                        drawPixelText(t.target + lvl.targetScore + " | Phần thưởng: " + lvl.reward, 35, 100 + i * 68, 16, "left", "#F1C40F");
+                        drawTomCoinIcon(325, 93 + i * 68, 8);
                     }} else {{
                         drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left", "#888");
                         drawPixelText(t.locked, 35, 100 + i * 68, 18, "left", "#E74C3C");
@@ -657,18 +694,42 @@ flappy_bird_html = f"""
                 }}
 
                 if (levelCompleted) {{
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawPixelText(t.completed, canvas.width / 2, 175, 32, "center", "#2ECC71");
-                    
-                    drawPixelText(t.earned + coinsEarnedThisRun, canvas.width / 2 - 10, 220, 22, "center", "#F1C40F");
-                    drawTomCoinIcon(canvas.width / 2 + 65, 213, 10);
-                    
-                    if (currentLevel < 5) {{
-                        drawPixelText(t.unlockedNext, canvas.width / 2, 255, 20, "center", "#3498DB");
+
+                    if (currentLevel === 5) {{
+                        drawPixelText(t.meetAngelaMsg, canvas.width / 2, 85, 24, "center", "#F1C40F");
+
+                        ctx.imageSmoothingEnabled = false;
+                        let tomImg = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
+                        if (tomImg && (tomImg.complete || tomImg.width)) {{
+                            ctx.drawImage(tomImg, 90, 120, 100, 60);
+                        }}
+                        let angelaImgToDraw = cleanedAngelaCanvas || angelaImage;
+                        if (angelaImgToDraw && (angelaImgToDraw.complete || angelaImgToDraw.width)) {{
+                            ctx.drawImage(angelaImgToDraw, 210, 120, 100, 60);
+                        }} else {{
+                            ctx.fillStyle = "#FFC0CB";
+                            ctx.fillRect(210, 120, 100, 60);
+                        }}
+
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 230, 22, "center", "#2ECC71");
+                        drawTomCoinIcon(canvas.width / 2 + 105, 223, 10);
+
+                        drawPixelText(t.continue, canvas.width / 2, 290, 22);
+
+                    }} else {{
+                        drawPixelText(t.passLevel + currentLevel, canvas.width / 2, 110, 28, "center", "#2ECC71");
+                        
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 175, 22, "center", "#F1C40F");
+                        drawTomCoinIcon(canvas.width / 2 + 105, 168, 10);
+                        
+                        if (currentLevel < 5) {{
+                            drawPixelText(t.unlockedNext, canvas.width / 2, 230, 20, "center", "#3498DB");
+                        }}
+                        
+                        drawPixelText(t.continue, canvas.width / 2, 290, 20);
                     }}
-                    
-                    drawPixelText(t.continue, canvas.width / 2, 295, 20);
                 }}
             }}
         }}
