@@ -53,6 +53,31 @@ flappy_bird_html = f"""
         const birdImage = new Image();
         birdImage.src = "{bird_data_url}";
 
+        // Tự động tách viền đen của ảnh con mèo
+        let cleanedBirdCanvas = null;
+        birdImage.onload = function() {{
+            cleanedBirdCanvas = document.createElement('canvas');
+            cleanedBirdCanvas.width = birdImage.width;
+            cleanedBirdCanvas.height = birdImage.height;
+            let tempCtx = cleanedBirdCanvas.getContext('2d');
+            tempCtx.drawImage(birdImage, 0, 0);
+            
+            try {{
+                let imgData = tempCtx.getImageData(0, 0, birdImage.width, birdImage.height);
+                let data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {{
+                    let r = data[i], g = data[i+1], b = data[i+2];
+                    // Nếu là màu đen hoặc gần đen, biến thành trong suốt
+                    if (r < 25 && g < 25 && b < 25) {{
+                        data[i + 3] = 0;
+                    }}
+                }}
+                tempCtx.putImageData(imgData, 0, 0);
+            }} catch(e) {{
+                cleanedBirdCanvas = birdImage;
+            }}
+        }};
+
         let totalCoins = parseInt(localStorage.getItem("tom_coins")) || 0;
         let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["default"];
         let currentSkin = localStorage.getItem("tom_current_skin") || "default";
@@ -69,8 +94,8 @@ flappy_bird_html = f"""
         let bird = {{
             x: 50,
             y: 150,
-            width: 55,   
-            height: 35,  
+            width: 70,   /* Phóng to chiều rộng mèo Tom */
+            height: 42,  /* Phóng to chiều cao mèo Tom */
             gravity: 0.42, 
             lift: -8.2,      
             velocity: 0
@@ -263,8 +288,14 @@ flappy_bird_html = f"""
         }}
 
         function drawBird() {{
-            if (currentSkin === 'default' && birdImage.src !== "" && birdImage.complete && birdImage.naturalWidth !== 0) {{
-                ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
+            if (currentSkin === 'default') {{
+                let imgToDraw = cleanedBirdCanvas || birdImage;
+                if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
+                    ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
+                }} else {{
+                    ctx.fillStyle = "#F4D03F";
+                    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+                }}
             }} else {{
                 ctx.fillStyle = skins[currentSkin].color;
                 ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
@@ -273,9 +304,9 @@ flappy_bird_html = f"""
                 ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
 
                 ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(bird.x + 30, bird.y + 8, 8, 8);
+                ctx.fillRect(bird.x + 40, bird.y + 10, 10, 10);
                 ctx.fillStyle = "#000000";
-                ctx.fillRect(bird.x + 34, bird.y + 10, 3, 3);
+                ctx.fillRect(bird.x + 45, bird.y + 13, 4, 4);
             }}
         }}
 
@@ -284,7 +315,6 @@ flappy_bird_html = f"""
 
             if (gameState === 'menu') {{
                 drawBackground();
-                // Hiển thị tên game mới trên màn hình Menu
                 drawPixelText("JOURNEY OF TOM", canvas.width / 2, 120, 15);
                 drawPixelText("🪙: " + totalCoins, canvas.width / 2, 185, 14);
 
