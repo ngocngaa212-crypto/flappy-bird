@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Đã hỗ trợ đa ngôn ngữ (Tiếng Việt có dấu / English)!")
+st.write("Hành trình của Tom - Đã đổi sang phông chữ VT323 sắc nét & dễ đọc Tiếng Việt!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -29,7 +29,8 @@ flappy_bird_html = f"""
 <head>
     <meta charset="UTF-8">
     <title>The journey of Tom</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Nhúng phông chữ VT323 pixel siêu rõ nét -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         body {{
             margin: 0;
@@ -38,7 +39,7 @@ flappy_bird_html = f"""
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: 'Press Start 2P', monospace;
+            font-family: 'VT323', monospace;
         }}
         canvas {{
             border: 4px solid #fff;
@@ -117,7 +118,7 @@ flappy_bird_html = f"""
                 owned: "ĐÃ SỞ HỮU",
                 price: "GIÁ: 🪙 ",
                 confirmTitle: "XÁC NHẬN MUA",
-                confirmAsk: "Bạn chắc chắn muốn mua?",
+                confirmAsk: "Bạn có chắc muốn mua?",
                 buy: "MUA",
                 cancel: "HỦY",
                 failed: "THẤT BẠI!",
@@ -231,7 +232,7 @@ flappy_bird_html = f"""
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
-            // Xử lý nút bấm Chuyển đổi Ngôn ngữ 🌐 VI / EN góc trên màn hình Menu
+            // Xử lý nút Chuyển đổi Ngôn ngữ 🌐 VI / EN
             if (gameState === 'menu' && mouseX >= 280 && mouseX <= 380 && mouseY >= 15 && mouseY <= 50) {{
                 currentLang = (currentLang === "vi") ? "en" : "vi";
                 localStorage.setItem("tom_lang", currentLang);
@@ -371,11 +372,12 @@ flappy_bird_html = f"""
             }}
         }}
 
+        // Sử dụng phông chữ VT323 cao rặng, nét mảnh rõ ràng
         function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
-            ctx.font = size + "px 'Press Start 2P', sans-serif";
+            ctx.font = size + "px 'VT323', monospace";
             ctx.textAlign = align;
             ctx.fillStyle = "#000000";
-            ctx.lineWidth = Math.max(4, Math.floor(size / 3));
+            ctx.lineWidth = Math.max(3, Math.floor(size / 6));
             ctx.strokeText(text, x, y);
             ctx.fillStyle = textColor;
             ctx.fillText(text, x, y);
@@ -452,7 +454,7 @@ flappy_bird_html = f"""
             ctx.lineWidth = 4;
             ctx.strokeRect(15, 65, 370, 345);
 
-            drawPixelText(t.confirmTitle, canvas.width / 2, 102, 13, "center", "#F1C40F");
+            drawPixelText(t.confirmTitle, canvas.width / 2, 105, 26, "center", "#F1C40F");
 
             let imgPreview = cleanedSkinCanvases[pendingBuySkinKey] || skinImages[pendingBuySkinKey];
             if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
@@ -465,168 +467,6 @@ flappy_bird_html = f"""
                 ctx.drawImage(imgPreview, 135, 125, 130, 75);
             }}
 
-            drawPixelText(t.confirmAsk, canvas.width / 2, 235, 10);
-            drawPixelText(skin.name, canvas.width / 2, 265, 12, "center", "#3498DB");
-            drawPixelText(t.price + skin.price, canvas.width / 2, 295, 12, "center", "#F1C40F");
-
-            // Nút MUA
-            ctx.fillStyle = "#27AE60";
-            ctx.fillRect(40, 330, 140, 50);
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, 330, 140, 50);
-            drawPixelText(t.buy, 110, 363, 14);
-
-            // Nút HỦY
-            ctx.fillStyle = "#C0392B";
-            ctx.fillRect(220, 330, 140, 50);
-            ctx.strokeRect(220, 330, 140, 50);
-            drawPixelText(t.cancel, 290, 363, 14);
-        }}
-
-        function draw() {{
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let t = i18n[currentLang];
-
-            if (gameState === 'menu') {{
-                drawBackground();
-                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 110, 17, "center", "#F1C40F");
-                drawPixelText(t.coins + totalCoins, canvas.width / 2, 165, 14);
-
-                // Nút chuyển đổi Ngôn ngữ góc trên
-                ctx.fillStyle = "#8E44AD";
-                ctx.fillRect(280, 15, 100, 35);
-                ctx.strokeStyle = "#FFF";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(280, 15, 100, 35);
-                drawPixelText((currentLang === "vi" ? "🌐 VI" : "🌐 EN"), 330, 38, 10);
-
-                // Nút Chơi Game
-                ctx.fillStyle = "#27AE60";
-                ctx.fillRect(60, 210, 280, 60);
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 4;
-                ctx.strokeRect(60, 210, 280, 60);
-                drawPixelText(t.play, canvas.width / 2, 248, 14);
-
-                // Nút Cửa Hàng
-                ctx.fillStyle = "#2980B9";
-                ctx.fillRect(60, 290, 280, 60);
-                ctx.strokeRect(60, 290, 280, 60);
-                drawPixelText(t.shop, canvas.width / 2, 328, 14);
-
-            }} else if (gameState === 'level_select') {{
-                drawBackground();
-                drawPixelText(t.selectLevel, canvas.width / 2, 42, 17, "center", "#F1C40F");
-
-                // Nút Lùi
-                ctx.fillStyle = "#7F8C8D";
-                ctx.fillRect(20, 15, 110, 35);
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(20, 15, 110, 35);
-                drawPixelText(t.back, 75, 38, 10);
-
-                for (let i = 1; i <= 5; i++) {{
-                    let lvl = levels[i];
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-                    ctx.fillRect(20, 55 + i * 68, 360, 53);
-                    ctx.strokeRect(20, 55 + i * 68, 360, 53);
-
-                    drawPixelText(t.lvlNames[i], 35, 82 + i * 68, 10, "left");
-                    drawPixelText(t.target + lvl.targetScore + " | " + t.reward + lvl.reward, 35, 99 + i * 68, 8, "left", "#F1C40F");
-                }}
-
-            }} else if (gameState === 'shop') {{
-                drawBackground();
-                drawPixelText(t.shop, canvas.width / 2, 38, 17, "center", "#F1C40F");
-                drawPixelText(t.coins + totalCoins, canvas.width / 2, 63, 11);
-
-                // Nút Lùi
-                ctx.fillStyle = "#7F8C8D";
-                ctx.fillRect(20, 15, 110, 35);
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(20, 15, 110, 35);
-                drawPixelText(t.back, 75, 38, 10);
-
-                let keys = Object.keys(skins);
-                for (let i = 0; i < keys.length; i++) {{
-                    let skinKey = keys[i];
-                    let skin = skins[skinKey];
-                    let isUnlocked = unlockedSkins.includes(skinKey);
-                    let isSelected = (currentSkin === skinKey);
-
-                    ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.8)";
-                    ctx.fillRect(15, 75 + i * 88, 370, 78);
-                    ctx.strokeStyle = isSelected ? "#2ECC71" : "#000";
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(15, 75 + i * 88, 370, 78);
-
-                    let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
-                    if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
-                        ctx.imageSmoothingEnabled = false;
-                        ctx.drawImage(imgPreview, 25, 86 + i * 88, 65, 42);
-                    }} else {{
-                        ctx.fillStyle = skin.color;
-                        ctx.fillRect(30, 90 + i * 88, 35, 35);
-                        ctx.strokeStyle = "#000";
-                        ctx.strokeRect(30, 90 + i * 88, 35, 35);
-                    }}
-
-                    drawPixelText(skin.name, 102, 106 + i * 88, 10, "left");
-
-                    if (isSelected) {{
-                        drawPixelText(t.using, 102, 134 + i * 88, 10, "left", "#2ECC71");
-                    }} else if (isUnlocked) {{
-                        drawPixelText(t.owned, 102, 134 + i * 88, 10, "left", "#AED6F1");
-                    }} else {{
-                        drawPixelText(t.price + skin.price, 102, 134 + i * 88, 10, "left", "#F1C40F");
-                    }}
-                }}
-
-                drawConfirmationModal();
-
-            }} else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {{
-                drawBackground();
-
-                let lvl = levels[currentLevel];
-                for (let i = 0; i < pipes.length; i++) {{
-                    drawPixelPipe(pipes[i].x, pipes[i].top, pipes[i].bottom);
-                }}
-
-                drawBird();
-
-                drawPixelText("LVL:" + currentLevel + " | " + score + "/" + lvl.targetScore, 15, 30, 10, "left");
-                drawPixelText("🪙 " + totalCoins, 385, 30, 10, "right");
-
-                if (gameState === 'gameover') {{
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawPixelText(t.failed, canvas.width / 2, 210, 20, "center", "#E74C3C");
-                    drawPixelText(t.retry, canvas.width / 2, 260, 9);
-                }}
-
-                if (levelCompleted) {{
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawPixelText(t.completed, canvas.width / 2, 185, 17, "center", "#2ECC71");
-                    drawPixelText(t.earned + coinsEarnedThisRun, canvas.width / 2, 230, 11, "center", "#F1C40F");
-                    drawPixelText(t.continue, canvas.width / 2, 280, 9);
-                }}
-            }}
-        }}
-
-        function loop() {{
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }}
-
-        loop();
-    </script>
-</body>
-</html>
-"""
-
-st.components.v1.html(flappy_bird_html, height=540)
+            drawPixelText(t.confirmAsk, canvas.width / 2, 240, 22);
+            drawPixelText(skin.name, canvas.width / 2, 270, 24, "center", "#3498DB");
+            drawPixelText(t.price + skin.price, canvas.width /
