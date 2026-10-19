@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Tối ưu chữ to rõ & Thông điệp màn 5 lãng mạn!")
+st.write("Hành trình của Tom - Bảng hướng dẫn hoàn chỉnh chi tiết!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -150,18 +150,21 @@ flappy_bird_html = f"""
                 failed: "THẤT BẠI!",
                 retry: "Nhấn Space để chọn lại",
                 passLevel: "CHÚC MỪNG BẠN ĐÃ VƯỢT ẢI ",
-                meetAngelaLine1: "Hoàn thành màn 5 để giúp",
-                meetAngelaLine2: "Tom gặp tình yêu của anh ấy",
+                meetAngelaLine1: "Hoàn thành màn 5 để giúp Tom",
+                meetAngelaLine2: "gặp được tình yêu của anh ấy",
                 continue: "Nhấn Space để tiếp tục",
                 notEnoughCoins: "Bạn không đủ tiền xu!",
                 locked: "🔒 BỊ KHÓA",
                 unlockedNext: "Đã mở khóa Cấp tiếp theo!",
                 guideTitle: "HƯỚNG DẪN CÁCH CHƠI",
-                guideStep1: "• Nhấn SPACE hoặc chạm để Tom bay lên.",
-                guideStep2: "• Khéo léo né ống nước để ghi điểm.",
+                guideStep1: "• Nhấn SPACE hoặc chạm để Tom",
+                guideStep2: "  bay lên né các ống nước.",
                 guideStep3: "• Đạt điểm mục tiêu để mở màn mới.",
-                guideStep4: "• Sau 60 giây, hình nền sẽ tự thay đổi.",
-                guideStep5: "• Tích xu mua Skin & giải cứu tình yêu!",
+                guideStep4: "• Sau 60 giây, hình nền sẽ đổi.",
+                guideStep5: "• Tích xu để đổi các skin của Tom.",
+                guideStep6: "• Hoàn thành màn 5 để giúp Tom",
+                guideStep7: "  gặp được tình yêu của anh ấy.",
+                guideWish: "Chúc bạn chơi game vui vẻ!",
                 closeBtn: "ĐÓNG",
                 lvlNames: {{
                     1: "CẤP 1: KHỞI ĐẦU",
@@ -189,18 +192,21 @@ flappy_bird_html = f"""
                 failed: "GAME OVER!",
                 retry: "Press Space to retry",
                 passLevel: "CONGRATULATIONS ON CLEARING LEVEL ",
-                meetAngelaLine1: "Completed Level 5 to help",
-                meetAngelaLine2: "Tom meet the love of his life",
+                meetAngelaLine1: "Completed Level 5 to help Tom",
+                meetAngelaLine2: "meet the love of his life",
                 continue: "Press Space to continue",
                 notEnoughCoins: "Not enough coins!",
                 locked: "🔒 LOCKED",
                 unlockedNext: "Unlocked Next Level!",
                 guideTitle: "GAME GUIDE",
-                guideStep1: "• Press SPACE or click to make Tom fly.",
-                guideStep2: "• Dodge pipes carefully to score.",
+                guideStep1: "• Press SPACE or click to make Tom",
+                guideStep2: "  fly up and dodge pipes.",
                 guideStep3: "• Reach target scores to unlock levels.",
                 guideStep4: "• After 60s, background will change.",
-                guideStep5: "• Collect coins for skins & meet love!",
+                guideStep5: "• Collect coins to change Tom's skins.",
+                guideStep6: "• Complete Level 5 to help Tom",
+                guideStep7: "  meet the love of his life.",
+                guideWish: "Have fun playing the game!",
                 closeBtn: "CLOSE",
                 lvlNames: {{
                     1: "LEVEL 1: BEGINNING",
@@ -295,7 +301,7 @@ flappy_bird_html = f"""
             }}
 
             if (showGuideModal) {{
-                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 390 && mouseY <= 435) {{
+                if (mouseX >= 130 && mouseX <= 270 && mouseY >= 415 && mouseY <= 460) {{
                     showGuideModal = false;
                 }}
                 return;
@@ -546,7 +552,6 @@ flappy_bird_html = f"""
             }}
         }}
 
-        // BẢNG HƯỚNG DẪN: NỀN TRẮNG SÁNG, CHỮ TO RÕ, TỰ ĐỘNG XUỐNG HÀNG
         function drawGuideModal() {{
             if (!showGuideModal) return;
             let t = i18n[currentLang];
@@ -555,28 +560,31 @@ flappy_bird_html = f"""
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(15, 45, 370, 410);
+            ctx.fillRect(15, 25, 370, 450);
             ctx.strokeStyle = "#2C3E50";
             ctx.lineWidth = 4;
-            ctx.strokeRect(15, 45, 370, 410);
+            ctx.strokeRect(15, 25, 370, 450);
 
-            drawCleanText(t.guideTitle, canvas.width / 2, 85, 30, "center", "#1B4F72");
+            drawCleanText(t.guideTitle, canvas.width / 2, 60, 28, "center", "#1B4F72");
 
-            let startY = 135;
-            let stepGap = 48;
-            // Phóng to chữ lên 24px để cực kỳ dễ đọc, chữ dài tự xuống dòng
-            drawCleanText(t.guideStep1, 30, startY, 24, "left", "#2C3E50");
-            drawCleanText(t.guideStep2, 30, startY + stepGap, 24, "left", "#2C3E50");
-            drawCleanText(t.guideStep3, 30, startY + stepGap * 2, 24, "left", "#2C3E50");
-            drawCleanText(t.guideStep4, 30, startY + stepGap * 3, 24, "left", "#2C3E50");
-            drawCleanText(t.guideStep5, 30, startY + stepGap * 4, 24, "left", "#2C3E50");
+            let startY = 95;
+            let stepGap = 35;
+            drawCleanText(t.guideStep1, 25, startY, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep2, 25, startY + stepGap, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep3, 25, startY + stepGap * 2, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep4, 25, startY + stepGap * 3, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep5, 25, startY + stepGap * 4, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep6, 25, startY + stepGap * 5, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep7, 25, startY + stepGap * 6, 20, "left", "#2C3E50");
+
+            drawCleanText(t.guideWish, canvas.width / 2, 390, 22, "center", "#C0392B");
 
             ctx.fillStyle = "#E74C3C";
-            ctx.fillRect(130, 395, 140, 48);
+            ctx.fillRect(130, 415, 140, 45);
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 2;
-            ctx.strokeRect(130, 395, 140, 48);
-            drawPixelText(t.closeBtn, 200, 427, 24);
+            ctx.strokeRect(130, 415, 140, 45);
+            drawPixelText(t.closeBtn, 200, 445, 22);
         }}
 
         function drawConfirmationModal() {{
@@ -775,7 +783,6 @@ flappy_bird_html = f"""
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                     if (currentLevel === 5) {{
-                        // MÀN 5: TỰ ĐỘNG XUỐNG HÀNG RÕ RÀNG VÀ LÃNG MẠN
                         drawPixelText(t.meetAngelaLine1, canvas.width / 2, 75, 22, "center", "#F1C40F");
                         drawPixelText(t.meetAngelaLine2, canvas.width / 2, 100, 22, "center", "#F1C40F");
 
