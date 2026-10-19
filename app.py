@@ -2,10 +2,10 @@ import streamlit as st
 import base64
 import os
 
-st.set_page_config(page_title="Flappy Bird Pixel Art", page_icon="🐦", layout="centered")
+st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
-st.title("🐦 Flappy Bird - Pixel Art Edition")
-st.write("Chế độ dễ hơn, phong cách Pixel cổ điển, phông chữ chữ trắng viền đen!")
+st.title("🐱 The journey of Tom - Pixel Edition")
+st.write("Hành trình của chú mèo Tom vượt qua các thử thách phong cách Pixel!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -22,8 +22,7 @@ flappy_bird_html = f"""
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Flappy Bird Pixel</title>
-    <!-- Nhập phông chữ Pixel chính hiệu từ Google Fonts -->
+    <title>The journey of Tom</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {{
@@ -38,7 +37,7 @@ flappy_bird_html = f"""
         canvas {{
             border: 4px solid #fff;
             box-shadow: 0px 0px 20px rgba(255,255,255,0.4);
-            image-rendering: pixelated; /* Giữ độ sắc nét phong cách pixel */
+            image-rendering: pixelated;
         }}
     </style>
 </head>
@@ -54,15 +53,15 @@ flappy_bird_html = f"""
         const birdImage = new Image();
         birdImage.src = "{bird_data_url}";
 
-        let totalCoins = parseInt(localStorage.getItem("fb_coins")) || 0;
-        let unlockedSkins = JSON.parse(localStorage.getItem("fb_skins")) || ["default"];
-        let currentSkin = localStorage.getItem("fb_current_skin") || "default";
+        let totalCoins = parseInt(localStorage.getItem("tom_coins")) || 0;
+        let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["default"];
+        let currentSkin = localStorage.getItem("tom_current_skin") || "default";
 
         const skins = {{
-            "default": {{ name: "Chim Tùy Chỉnh", price: 0, color: "#F4D03F" }},
-            "ninja": {{ name: "Ninja Đen Bí Ẩn", price: 20, color: "#2E4053" }},
-            "superman": {{ name: "Siêu Nhân Đỏ", price: 50, color: "#CB4335" }},
-            "golden": {{ name: "Chim Thần Hoàng Kim", price: 100, color: "#F39C12" }}
+            "default": {{ name: "Tom Cầu Vồng", price: 0, color: "#F4D03F" }},
+            "ninja": {{ name: "Tom Ninja Đen", price: 20, color: "#2E4053" }},
+            "superman": {{ name: "Tom Siêu Nhân", price: 50, color: "#CB4335" }},
+            "golden": {{ name: "Tom Hoàng Kim", price: 100, color: "#F39C12" }}
         }};
 
         let gameState = 'menu';
@@ -70,21 +69,20 @@ flappy_bird_html = f"""
         let bird = {{
             x: 50,
             y: 150,
-            width: 34,
-            height: 28,
-            gravity: 0.45,   /* Giảm trọng lực để chim bay nhẹ nhàng hơn (Dễ hơn) */
-            lift: -8.5,      /* Lực nhảy vừa phải, dễ kiểm soát */
+            width: 55,   
+            height: 35,  
+            gravity: 0.42, 
+            lift: -8.2,      
             velocity: 0
         }};
 
         let currentLevel = 1;
-        // Đã tinh chỉnh lại 5 cấp độ CỰC KỲ DỄ THỞ, khoảng cách ống rộng hơn nhiều
         const levels = {{
-            1: {{ name: "Cấp 1: Tập Sự", speed: 1.5, gap: 170, spawnRate: 120, targetScore: 3, reward: 10 }},
-            2: {{ name: "Cấp 2: Thử Thách", speed: 1.8, gap: 160, spawnRate: 110, targetScore: 5, reward: 20 }},
-            3: {{ name: "Cấp 3: Khó Nhằn", speed: 2.1, gap: 150, spawnRate: 100, targetScore: 8, reward: 35 }},
-            4: {{ name: "Cấp 4: Chuyên Gia", speed: 2.4, gap: 140, spawnRate: 90, targetScore: 12, reward: 50 }},
-            5: {{ name: "Cấp 5: Bậc Thầy", speed: 2.8, gap: 130, spawnRate: 80, targetScore: 15, reward: 100 }}
+            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 170, spawnRate: 120, targetScore: 3, reward: 10 }},
+            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 160, spawnRate: 110, targetScore: 5, reward: 20 }},
+            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 150, spawnRate: 100, targetScore: 8, reward: 35 }},
+            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 140, spawnRate: 90, targetScore: 12, reward: 50 }},
+            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 130, spawnRate: 80, targetScore: 15, reward: 100 }}
         }};
 
         let pipes = [];
@@ -146,16 +144,16 @@ flappy_bird_html = f"""
                     if (mouseX >= 30 && mouseX <= 370 && mouseY >= (95 + i * 80) && mouseY <= (160 + i * 80)) {{
                         if (unlockedSkins.includes(skinKey)) {{
                             currentSkin = skinKey;
-                            localStorage.setItem("fb_current_skin", currentSkin);
+                            localStorage.setItem("tom_current_skin", currentSkin);
                         }} else {{
                             let skin = skins[skinKey];
                             if (totalCoins >= skin.price) {{
                                 totalCoins -= skin.price;
                                 unlockedSkins.push(skinKey);
                                 currentSkin = skinKey;
-                                localStorage.setItem("fb_coins", totalCoins);
-                                localStorage.setItem("fb_skins", JSON.stringify(unlockedSkins));
-                                localStorage.setItem("fb_current_skin", currentSkin);
+                                localStorage.setItem("tom_coins", totalCoins);
+                                localStorage.setItem("tom_skins", JSON.stringify(unlockedSkins));
+                                localStorage.setItem("tom_current_skin", currentSkin);
                             }} else {{
                                 alert("Bạn không đủ tiền xu!");
                             }}
@@ -215,7 +213,7 @@ flappy_bird_html = f"""
                         levelCompleted = true;
                         coinsEarnedThisRun = lvl.reward;
                         totalCoins += coinsEarnedThisRun;
-                        localStorage.setItem("fb_coins", totalCoins);
+                        localStorage.setItem("tom_coins", totalCoins);
                     }}
                 }}
 
@@ -236,30 +234,26 @@ flappy_bird_html = f"""
             }}
         }}
 
-        // Hàm hỗ trợ vẽ chữ chuẩn phong cách Pixel: Chữ trắng, viền đen nét căng
         function drawPixelText(text, x, y, size, align = "center") {{
             ctx.font = size + "px 'Press Start 2P'";
             ctx.textAlign = align;
-            ctx.fillStyle = "#000000"; // Viền đen
+            ctx.fillStyle = "#000000";
             ctx.lineWidth = 4;
             ctx.strokeText(text, x, y);
-            ctx.fillStyle = "#FFFFFF"; // Chữ trắng bên trong
+            ctx.fillStyle = "#FFFFFF";
             ctx.fillText(text, x, y);
         }}
 
         function drawPixelPipe(x, topHeight, bottomHeight) {{
-            // Vẽ thân ống nước phong cách Pixel
             ctx.fillStyle = "#558022";
             ctx.fillRect(x, 0, 55, topHeight);
             ctx.fillRect(x, canvas.height - bottomHeight - 45, 55, bottomHeight);
 
-            // Viền pixel đậm cho ống nước
             ctx.strokeStyle = "#223311";
             ctx.lineWidth = 3;
             ctx.strokeRect(x, 0, 55, topHeight);
             ctx.strokeRect(x, canvas.height - bottomHeight - 45, 55, bottomHeight);
 
-            // Nắp ống nước phong cách pixel
             ctx.fillStyle = "#73BF2E";
             ctx.fillRect(x - 4, topHeight - 20, 63, 20);
             ctx.strokeRect(x - 4, topHeight - 20, 63, 20);
@@ -274,15 +268,14 @@ flappy_bird_html = f"""
             }} else {{
                 ctx.fillStyle = skins[currentSkin].color;
                 ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-                // Viền nhân vật pixel
                 ctx.strokeStyle = "#000";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
 
                 ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(bird.x + 20, bird.y + 5, 8, 8);
+                ctx.fillRect(bird.x + 30, bird.y + 8, 8, 8);
                 ctx.fillStyle = "#000000";
-                ctx.fillRect(bird.x + 24, bird.y + 7, 3, 3);
+                ctx.fillRect(bird.x + 34, bird.y + 10, 3, 3);
             }}
         }}
 
@@ -291,10 +284,10 @@ flappy_bird_html = f"""
 
             if (gameState === 'menu') {{
                 drawBackground();
-                drawPixelText("FLAPPY BIRD", canvas.width / 2, 130, 22);
+                // Hiển thị tên game mới trên màn hình Menu
+                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 120, 15);
                 drawPixelText("🪙: " + totalCoins, canvas.width / 2, 185, 14);
 
-                // Nút Chơi Game
                 ctx.fillStyle = "#27AE60";
                 ctx.fillRect(80, 230, 240, 55);
                 ctx.strokeStyle = "#000";
@@ -302,7 +295,6 @@ flappy_bird_html = f"""
                 ctx.strokeRect(80, 230, 240, 55);
                 drawPixelText("CHOI GAME", canvas.width / 2, 265, 12);
 
-                // Nút Shop
                 ctx.fillStyle = "#2980B9";
                 ctx.fillRect(80, 310, 240, 55);
                 ctx.strokeRect(80, 310, 240, 55);
@@ -312,7 +304,6 @@ flappy_bird_html = f"""
                 drawBackground();
                 drawPixelText("CHON CAP DO", canvas.width / 2, 45, 16);
 
-                // Nút Back
                 ctx.fillStyle = "#7F8C8D";
                 ctx.fillRect(30, 15, 100, 30);
                 ctx.strokeRect(30, 15, 100, 30);
@@ -336,7 +327,6 @@ flappy_bird_html = f"""
                 drawPixelText("CUA HANG", canvas.width / 2, 45, 16);
                 drawPixelText("🪙 Xu: " + totalCoins, canvas.width / 2, 75, 10);
 
-                // Nút Back
                 ctx.fillStyle = "#7F8C8D";
                 ctx.fillRect(30, 15, 100, 30);
                 ctx.strokeRect(30, 15, 100, 30);
