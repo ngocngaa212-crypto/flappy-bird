@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom với ống nước phong cách Retro Pixel Art 8-Bit!")
+st.write("Hành trình của Tom với hệ thống Cửa Hàng Skin độc đáo!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -14,8 +14,14 @@ def get_image_base64(image_path):
             return f"data:image/png;base64,{encoded}"
     return ""
 
+# Đọc các file ảnh từ thư mục GitHub
 bg_data_url = get_image_base64("background.png")
-bird_data_url = get_image_base64("bird.png")
+normal_data_url = get_image_base64("cat_normal.png") if os.path.exists("cat_normal.png") else get_image_base64("bird.png")
+
+# Đọc 3 file ảnh skin theo đúng tên file bạn đã đặt
+rainbow_data_url = get_image_base64("rainbow_Tom.png")
+donut_data_url = get_image_base64("Tom_with_donut.png")
+strong_data_url = get_image_base64("super_strong_Tom.png")
 
 flappy_bird_html = f"""
 <!DOCTYPE html>
@@ -51,42 +57,60 @@ flappy_bird_html = f"""
         const bgImage = new Image();
         bgImage.src = "{bg_data_url}";
 
-        const birdImage = new Image();
-        birdImage.src = "{bird_data_url}";
-
-        // Tự động lọc viền đen/sẫm cho bất kỳ hình nhân vật mới nào tải lên
-        let cleanedBirdCanvas = null;
-        birdImage.onload = function() {{
-            cleanedBirdCanvas = document.createElement('canvas');
-            cleanedBirdCanvas.width = birdImage.width;
-            cleanedBirdCanvas.height = birdImage.height;
-            let tempCtx = cleanedBirdCanvas.getContext('2d');
-            tempCtx.drawImage(birdImage, 0, 0);
-            
-            try {{
-                let imgData = tempCtx.getImageData(0, 0, birdImage.width, birdImage.height);
-                let data = imgData.data;
-                for (let i = 0; i < data.length; i += 4) {{
-                    let r = data[i], g = data[i+1], b = data[i+2];
-                    if (r < 25 && g < 25 && b < 25) {{
-                        data[i + 3] = 0;
-                    }}
-                }}
-                tempCtx.putImageData(imgData, 0, 0);
-            }} catch(e) {{
-                cleanedBirdCanvas = birdImage;
-            }}
+        // Tải danh sách ảnh skin nhân vật
+        const skinImages = {{
+            "normal": new Image(),
+            "rainbow": new Image(),
+            "donut": new Image(),
+            "strong": new Image()
         }};
 
-        let totalCoins = parseInt(localStorage.getItem("tom_coins")) || 0;
-        let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["default"];
-        let currentSkin = localStorage.getItem("tom_current_skin") || "default";
+        skinImages["normal"].src = "{normal_data_url}";
+        skinImages["rainbow"].src = "{rainbow_data_url}";
+        skinImages["donut"].src = "{donut_data_url}";
+        skinImages["strong"].src = "{strong_data_url}";
 
+        // Tự động lọc viền đen/sẫm cho tất cả ảnh nhân vật
+        const cleanedSkinCanvases = {{}};
+
+        function processSkinImage(key, img) {{
+            img.onload = function() {{
+                let c = document.createElement('canvas');
+                c.width = img.width;
+                c.height = img.height;
+                let tCtx = c.getContext('2d');
+                tCtx.drawImage(img, 0, 0);
+                try {{
+                    let imgData = tCtx.getImageData(0, 0, img.width, img.height);
+                    let data = imgData.data;
+                    for (let i = 0; i < data.length; i += 4) {{
+                        let r = data[i], g = data[i+1], b = data[i+2];
+                        if (r < 25 && g < 25 && b < 25) {{
+                            data[i + 3] = 0;
+                        }}
+                    }}
+                    tCtx.putImageData(imgData, 0, 0);
+                    cleanedSkinCanvases[key] = c;
+                }} catch(e) {{
+                    cleanedSkinCanvases[key] = img;
+                }}
+            }};
+        }}
+
+        for (let key in skinImages) {{
+            processSkinImage(key, skinImages[key]);
+        }}
+
+        let totalCoins = parseInt(localStorage.getItem("tom_coins")) || 0;
+        let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["normal"];
+        let currentSkin = localStorage.getItem("tom_current_skin") || "normal";
+
+        // Thiết lập 4 Skin (1 mặc định + 3 skin trong cửa hàng với mức giá yêu cầu)
         const skins = {{
-            "default": {{ name: "Tom Mặc Định", price: 0, color: "#F4D03F" }},
-            "ninja": {{ name: "Tom Ninja Đen", price: 20, color: "#2E4053" }},
-            "superman": {{ name: "Tom Siêu Nhân", price: 50, color: "#CB4335" }},
-            "golden": {{ name: "Tom Hoàng Kim", price: 100, color: "#F39C12" }}
+            "normal": {{ name: "normal tom", price: 0, color: "#F4D03F" }},
+            "rainbow": {{ name: "rainbow Tom", price: 50, color: "#9B59B6" }},
+            "donut": {{ name: "Tom with donut", price: 100, color: "#E75480" }},
+            "strong": {{ name: "Super strong Tom", price: 170, color: "#E74C3C" }}
         }};
 
         let gameState = 'menu';
@@ -94,7 +118,7 @@ flappy_bird_html = f"""
         let bird = {{
             x: 30,
             y: 150,
-            width: 110,   /* Kích thước hiển thị nhân vật to rõ */
+            width: 110,
             height: 66,
             gravity: 0.42, 
             lift: -8.2,      
@@ -103,11 +127,11 @@ flappy_bird_html = f"""
 
         let currentLevel = 1;
         const levels = {{
-            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 195, spawnRate: 120, targetScore: 3, reward: 10 }},
-            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 185, spawnRate: 110, targetScore: 5, reward: 20 }},
-            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 175, spawnRate: 100, targetScore: 8, reward: 35 }},
-            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 165, spawnRate: 90, targetScore: 12, reward: 50 }},
-            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 155, spawnRate: 80, targetScore: 15, reward: 100 }}
+            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 195, spawnRate: 120, targetScore: 3, reward: 15 }},
+            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 185, spawnRate: 110, targetScore: 5, reward: 30 }},
+            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 175, spawnRate: 100, targetScore: 8, reward: 50 }},
+            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 165, spawnRate: 90, targetScore: 12, reward: 80 }},
+            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 155, spawnRate: 80, targetScore: 15, reward: 120 }}
         }};
 
         let pipes = [];
@@ -144,15 +168,15 @@ flappy_bird_html = f"""
             let mouseY = e.clientY - rect.top;
 
             if (gameState === 'menu') {{
-                if (mouseX >= 80 && mouseX <= 320 && mouseY >= 230 && mouseY <= 285) {{
+                if (mouseX >= 80 && mouseX <= 320 && mouseY >= 220 && mouseY <= 270) {{
                     gameState = 'level_select';
                 }}
-                if (mouseX >= 80 && mouseX <= 320 && mouseY >= 310 && mouseY <= 365) {{
+                if (mouseX >= 80 && mouseX <= 320 && mouseY >= 295 && mouseY <= 345) {{
                     gameState = 'shop';
                 }}
             }} else if (gameState === 'level_select') {{
                 for (let i = 1; i <= 5; i++) {{
-                    if (mouseX >= 30 && mouseX <= 370 && mouseY >= (65 + i * 65) && mouseY <= (115 + i * 65)) {{
+                    if (mouseX >= 30 && mouseX <= 370 && mouseY >= (60 + i * 65) && mouseY <= (108 + i * 65)) {{
                         resetGame(i);
                     }}
                 }}
@@ -160,13 +184,13 @@ flappy_bird_html = f"""
                     gameState = 'menu';
                 }}
             }} else if (gameState === 'shop') {{
-                if (mouseX >= 30 && mouseX <= 130 && mouseY >= 15 && mouseY <= 45) {{
+                if (mouseX >= 20 && mouseX <= 110 && mouseY >= 15 && mouseY <= 43) {{
                     gameState = 'menu';
                 }}
                 let keys = Object.keys(skins);
                 for (let i = 0; i < keys.length; i++) {{
                     let skinKey = keys[i];
-                    if (mouseX >= 30 && mouseX <= 370 && mouseY >= (95 + i * 80) && mouseY <= (160 + i * 80)) {{
+                    if (mouseX >= 20 && mouseX <= 380 && mouseY >= (75 + i * 85) && mouseY <= (147 + i * 85)) {{
                         if (unlockedSkins.includes(skinKey)) {{
                             currentSkin = skinKey;
                             localStorage.setItem("tom_current_skin", currentSkin);
@@ -180,7 +204,7 @@ flappy_bird_html = f"""
                                 localStorage.setItem("tom_skins", JSON.stringify(unlockedSkins));
                                 localStorage.setItem("tom_current_skin", currentSkin);
                             }} else {{
-                                alert("Bạn không đủ tiền xu!");
+                                alert("Bạn không đủ tiền xu để mua skin này!");
                             }}
                         }}
                     }}
@@ -272,29 +296,22 @@ flappy_bird_html = f"""
             ctx.fillText(text, x, y);
         }}
 
-        // VẼ ỐNG NƯỚC CHUẨN PHONG CÁCH PIXEL ART 8-BIT CỔ ĐIỂN
         function drawPixelPipeSection(x, y, w, h, isCap = false) {{
-            // 1. Thân chính màu xanh mạ dưa hấu
             ctx.fillStyle = "#73BF2E";
             ctx.fillRect(x, y, w, h);
 
-            // 2. Mảng phản quang sáng (Highlight pixel)
             ctx.fillStyle = "#B5E61D";
             ctx.fillRect(x + 6, y, 8, h);
 
-            // 3. Mảng vệt sáng trắng nhỏ
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(x + 8, y, 2, h);
 
-            // 4. Mảng bóng tối bên phải (Shadow pixel)
             ctx.fillStyle = "#3F7A00";
             ctx.fillRect(x + w - 14, y, 8, h);
 
-            // 5. Mảng tối đậm sát viền phải
             ctx.fillStyle = "#1E4700";
             ctx.fillRect(x + w - 6, y, 6, h);
 
-            // 6. Khung viền đen dày dặn pixel
             ctx.strokeStyle = "#000000";
             ctx.lineWidth = 3;
             ctx.strokeRect(x, y, w, h);
@@ -306,22 +323,16 @@ flappy_bird_html = f"""
             const capH = 24;
             const capOffsetX = (capW - pipeW) / 2;
 
-            // --- ỐNG TRÊN ---
             if (topHeight > capH) {{
-                // Thân ống trên
                 drawPixelPipeSection(x, 0, pipeW, topHeight - capH);
-                // Nắp ống trên
                 drawPixelPipeSection(x - capOffsetX, topHeight - capH, capW, capH, true);
             }} else {{
                 drawPixelPipeSection(x - capOffsetX, 0, capW, topHeight, true);
             }}
 
-            // --- ỐNG DƯỚI ---
             const bottomY = canvas.height - bottomHeight - 45;
             if (bottomHeight > capH) {{
-                // Nắp ống dưới
                 drawPixelPipeSection(x - capOffsetX, bottomY, capW, capH, true);
-                // Thân ống dưới
                 drawPixelPipeSection(x, bottomY + capH, pipeW, bottomHeight - capH);
             }} else {{
                 drawPixelPipeSection(x - capOffsetX, bottomY, capW, bottomHeight, true);
@@ -329,26 +340,16 @@ flappy_bird_html = f"""
         }}
 
         function drawBird() {{
-            if (currentSkin === 'default') {{
-                let imgToDraw = cleanedBirdCanvas || birdImage;
-                if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
-                    ctx.imageSmoothingEnabled = false;
-                    ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
-                }} else {{
-                    ctx.fillStyle = "#F4D03F";
-                    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-                }}
+            let imgToDraw = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
+            if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
             }} else {{
                 ctx.fillStyle = skins[currentSkin].color;
                 ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
                 ctx.strokeStyle = "#000";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
-
-                ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(bird.x + 70, bird.y + 12, 14, 14);
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(bird.x + 78, bird.y + 16, 5, 5);
             }}
         }}
 
@@ -357,24 +358,24 @@ flappy_bird_html = f"""
 
             if (gameState === 'menu') {{
                 drawBackground();
-                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 120, 15);
-                drawPixelText("🪙: " + totalCoins, canvas.width / 2, 185, 14);
+                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 110, 15);
+                drawPixelText("🪙: " + totalCoins, canvas.width / 2, 170, 14);
 
                 ctx.fillStyle = "#27AE60";
-                ctx.fillRect(80, 230, 240, 55);
+                ctx.fillRect(80, 220, 240, 50);
                 ctx.strokeStyle = "#000";
                 ctx.lineWidth = 3;
-                ctx.strokeRect(80, 230, 240, 55);
-                drawPixelText("CHOI GAME", canvas.width / 2, 265, 12);
+                ctx.strokeRect(80, 220, 240, 50);
+                drawPixelText("CHOI GAME", canvas.width / 2, 252, 12);
 
                 ctx.fillStyle = "#2980B9";
-                ctx.fillRect(80, 310, 240, 55);
-                ctx.strokeRect(80, 310, 240, 55);
-                drawPixelText("CUA HANG", canvas.width / 2, 345, 12);
+                ctx.fillRect(80, 295, 240, 50);
+                ctx.strokeRect(80, 295, 240, 50);
+                drawPixelText("CUA HANG", canvas.width / 2, 327, 12);
 
             }} else if (gameState === 'level_select') {{
                 drawBackground();
-                drawPixelText("CHON CAP DO", canvas.width / 2, 45, 16);
+                drawPixelText("CHON CAP DO", canvas.width / 2, 40, 15);
 
                 ctx.fillStyle = "#7F8C8D";
                 ctx.fillRect(30, 15, 100, 30);
@@ -384,25 +385,25 @@ flappy_bird_html = f"""
                 for (let i = 1; i <= 5; i++) {{
                     let lvl = levels[i];
                     ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-                    ctx.fillRect(30, 65 + i * 65, 340, 48);
-                    ctx.strokeRect(30, 65 + i * 65, 340, 48);
+                    ctx.fillRect(30, 60 + i * 65, 340, 48);
+                    ctx.strokeRect(30, 60 + i * 65, 340, 48);
 
-                    drawPixelText(lvl.name, 45, 92 + i * 65, 10, "left");
+                    drawPixelText(lvl.name, 45, 87 + i * 65, 9, "left");
                     
-                    ctx.font = "8px 'Press Start 2P'";
+                    ctx.font = "7px 'Press Start 2P'";
                     ctx.fillStyle = "#F1C40F";
-                    ctx.fillText("Muc tieu: " + lvl.targetScore + " | Thuong: 🪙" + lvl.reward, 45, 106 + i * 65);
+                    ctx.fillText("Muc tieu:" + lvl.targetScore + " | Thuong:🪙" + lvl.reward, 45, 101 + i * 65);
                 }}
 
             }} else if (gameState === 'shop') {{
                 drawBackground();
-                drawPixelText("CUA HANG", canvas.width / 2, 45, 16);
-                drawPixelText("🪙 Xu: " + totalCoins, canvas.width / 2, 75, 10);
+                drawPixelText("CUA HANG SKIN", canvas.width / 2, 35, 14);
+                drawPixelText("🪙 Xu: " + totalCoins, canvas.width / 2, 60, 9);
 
                 ctx.fillStyle = "#7F8C8D";
-                ctx.fillRect(30, 15, 100, 30);
-                ctx.strokeRect(30, 15, 100, 30);
-                drawPixelText("<- LUI", 80, 35, 9);
+                ctx.fillRect(20, 15, 90, 28);
+                ctx.strokeRect(20, 15, 90, 28);
+                drawPixelText("<- LUI", 65, 33, 8);
 
                 let keys = Object.keys(skins);
                 for (let i = 0; i < keys.length; i++) {{
@@ -412,26 +413,33 @@ flappy_bird_html = f"""
                     let isSelected = (currentSkin === skinKey);
 
                     ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.75)";
-                    ctx.fillRect(30, 95 + i * 80, 340, 65);
-                    ctx.strokeRect(30, 95 + i * 80, 340, 65);
+                    ctx.fillRect(20, 75 + i * 85, 360, 72);
+                    ctx.strokeRect(20, 75 + i * 85, 360, 72);
 
-                    ctx.fillStyle = skin.color;
-                    ctx.fillRect(45, 110 + i * 80, 25, 25);
-                    ctx.strokeStyle = "#000";
-                    ctx.strokeRect(45, 110 + i * 80, 25, 25);
+                    // Xem trước hình ảnh Skin trong Cửa Hàng
+                    let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
+                    if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(imgPreview, 30, 88 + i * 85, 48, 30);
+                    }} else {{
+                        ctx.fillStyle = skin.color;
+                        ctx.fillRect(35, 90 + i * 85, 26, 26);
+                        ctx.strokeStyle = "#000";
+                        ctx.strokeRect(35, 90 + i * 85, 26, 26);
+                    }}
 
-                    drawPixelText(skin.name, 85, 122 + i * 80, 10, "left");
+                    drawPixelText(skin.name, 92, 104 + i * 85, 8, "left");
 
-                    ctx.font = "8px 'Press Start 2P'";
+                    ctx.font = "7px 'Press Start 2P'";
                     if (isSelected) {{
                         ctx.fillStyle = "#2ECC71";
-                        ctx.fillText("DANG DUNG", 85, 142 + i * 80);
+                        ctx.fillText("DANG DUNG", 92, 128 + i * 85);
                     }} else if (isUnlocked) {{
                         ctx.fillStyle = "#AED6F1";
-                        ctx.fillText("DA SO HUU", 85, 142 + i * 80);
+                        ctx.fillText("DA SO HUU", 92, 128 + i * 85);
                     }} else {{
                         ctx.fillStyle = "#F1C40F";
-                        ctx.fillText("Gia: 🪙 " + skin.price, 85, 142 + i * 80);
+                        ctx.fillText("Gia: 🪙 " + skin.price, 92, 128 + i * 85);
                     }}
                 }}
 
@@ -445,27 +453,27 @@ flappy_bird_html = f"""
 
                 drawBird();
 
-                drawPixelText("LVL: " + currentLevel + " | DIEM: " + score + "/" + lvl.targetScore, 20, 28, 9, "left");
-                drawPixelText("🪙 " + totalCoins, 350, 28, 9, "right");
+                drawPixelText("LVL:" + currentLevel + " | DIEM:" + score + "/" + lvl.targetScore, 15, 28, 8, "left");
+                drawPixelText("🪙" + totalCoins, 385, 28, 8, "right");
 
                 if (gameState === 'gameover') {{
                     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     drawPixelText("THAT BAI!", canvas.width / 2, 210, 20);
-                    drawPixelText("Nhan Space de chon lai", canvas.width / 2, 260, 9);
+                    drawPixelText("Nhan Space de chon lai", canvas.width / 2, 260, 8);
                 }}
 
                 if (levelCompleted) {{
                     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawPixelText("HOAN THANH!", canvas.width / 2, 185, 16);
+                    drawPixelText("HOAN THANH!", canvas.width / 2, 185, 15);
                     
-                    ctx.font = "10px 'Press Start 2P'";
+                    ctx.font = "9px 'Press Start 2P'";
                     ctx.fillStyle = "#F1C40F";
                     ctx.textAlign = "center";
                     ctx.fillText("Thuong: + 🪙 " + coinsEarnedThisRun, canvas.width / 2, 230);
                     
-                    drawPixelText("Nhan Space de tiep tuc", canvas.width / 2, 280, 9);
+                    drawPixelText("Nhan Space de tiep tuc", canvas.width / 2, 280, 8);
                 }}
             }}
         }}
