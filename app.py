@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của chú mèo Tom vượt qua các thử thách phong cách Pixel!")
+st.write("Hành trình của Tom với ống nước phong cách Retro Pixel Art 8-Bit!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -38,6 +38,7 @@ flappy_bird_html = f"""
             border: 4px solid #fff;
             box-shadow: 0px 0px 20px rgba(255,255,255,0.4);
             image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }}
     </style>
 </head>
@@ -53,7 +54,7 @@ flappy_bird_html = f"""
         const birdImage = new Image();
         birdImage.src = "{bird_data_url}";
 
-        // Tự động lọc viền đen của ảnh con mèo
+        // Tự động lọc viền đen/sẫm cho bất kỳ hình nhân vật mới nào tải lên
         let cleanedBirdCanvas = null;
         birdImage.onload = function() {{
             cleanedBirdCanvas = document.createElement('canvas');
@@ -82,7 +83,7 @@ flappy_bird_html = f"""
         let currentSkin = localStorage.getItem("tom_current_skin") || "default";
 
         const skins = {{
-            "default": {{ name: "Tom Cầu Vồng", price: 0, color: "#F4D03F" }},
+            "default": {{ name: "Tom Mặc Định", price: 0, color: "#F4D03F" }},
             "ninja": {{ name: "Tom Ninja Đen", price: 20, color: "#2E4053" }},
             "superman": {{ name: "Tom Siêu Nhân", price: 50, color: "#CB4335" }},
             "golden": {{ name: "Tom Hoàng Kim", price: 100, color: "#F39C12" }}
@@ -93,15 +94,14 @@ flappy_bird_html = f"""
         let bird = {{
             x: 30,
             y: 150,
-            width: 120,   /* Phóng cực to mèo Tom để thấy rõ từng chi tiết */
-            height: 72,   /* Tỉ lệ chuẩn kích thước lớn */
+            width: 110,   /* Kích thước hiển thị nhân vật to rõ */
+            height: 66,
             gravity: 0.42, 
             lift: -8.2,      
             velocity: 0
         }};
 
         let currentLevel = 1;
-        // Khoảng cách khe hở giữa các ống được mở rộng thêm để vừa với mèo Tom siêu to
         const levels = {{
             1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 195, spawnRate: 120, targetScore: 3, reward: 10 }},
             2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 185, spawnRate: 110, targetScore: 5, reward: 20 }},
@@ -199,7 +199,7 @@ flappy_bird_html = f"""
                 x: canvas.width,
                 top: topHeight,
                 bottom: canvas.height - topHeight - lvl.gap,
-                width: 55,
+                width: 58,
                 passed: false
             }});
         }}
@@ -219,7 +219,6 @@ flappy_bird_html = f"""
                 spawnPipe();
             }}
 
-            // Tinh chỉnh hitbox va chạm chính xác cho thân mèo Tom
             let hitboxPaddingX = 18;
             let hitboxPaddingY = 10;
 
@@ -273,29 +272,66 @@ flappy_bird_html = f"""
             ctx.fillText(text, x, y);
         }}
 
-        function drawPixelPipe(x, topHeight, bottomHeight) {{
-            ctx.fillStyle = "#558022";
-            ctx.fillRect(x, 0, 55, topHeight);
-            ctx.fillRect(x, canvas.height - bottomHeight - 45, 55, bottomHeight);
-
-            ctx.strokeStyle = "#223311";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, 0, 55, topHeight);
-            ctx.strokeRect(x, canvas.height - bottomHeight - 45, 55, bottomHeight);
-
+        // VẼ ỐNG NƯỚC CHUẨN PHONG CÁCH PIXEL ART 8-BIT CỔ ĐIỂN
+        function drawPixelPipeSection(x, y, w, h, isCap = false) {{
+            // 1. Thân chính màu xanh mạ dưa hấu
             ctx.fillStyle = "#73BF2E";
-            ctx.fillRect(x - 4, topHeight - 20, 63, 20);
-            ctx.strokeRect(x - 4, topHeight - 20, 63, 20);
+            ctx.fillRect(x, y, w, h);
 
-            ctx.fillRect(x - 4, canvas.height - bottomHeight - 45, 63, 20);
-            ctx.strokeRect(x - 4, canvas.height - bottomHeight - 45, 63, 20);
+            // 2. Mảng phản quang sáng (Highlight pixel)
+            ctx.fillStyle = "#B5E61D";
+            ctx.fillRect(x + 6, y, 8, h);
+
+            // 3. Mảng vệt sáng trắng nhỏ
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(x + 8, y, 2, h);
+
+            // 4. Mảng bóng tối bên phải (Shadow pixel)
+            ctx.fillStyle = "#3F7A00";
+            ctx.fillRect(x + w - 14, y, 8, h);
+
+            // 5. Mảng tối đậm sát viền phải
+            ctx.fillStyle = "#1E4700";
+            ctx.fillRect(x + w - 6, y, 6, h);
+
+            // 6. Khung viền đen dày dặn pixel
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+        }}
+
+        function drawPixelPipe(x, topHeight, bottomHeight) {{
+            const pipeW = 56;
+            const capW = 66;
+            const capH = 24;
+            const capOffsetX = (capW - pipeW) / 2;
+
+            // --- ỐNG TRÊN ---
+            if (topHeight > capH) {{
+                // Thân ống trên
+                drawPixelPipeSection(x, 0, pipeW, topHeight - capH);
+                // Nắp ống trên
+                drawPixelPipeSection(x - capOffsetX, topHeight - capH, capW, capH, true);
+            }} else {{
+                drawPixelPipeSection(x - capOffsetX, 0, capW, topHeight, true);
+            }}
+
+            // --- ỐNG DƯỚI ---
+            const bottomY = canvas.height - bottomHeight - 45;
+            if (bottomHeight > capH) {{
+                // Nắp ống dưới
+                drawPixelPipeSection(x - capOffsetX, bottomY, capW, capH, true);
+                // Thân ống dưới
+                drawPixelPipeSection(x, bottomY + capH, pipeW, bottomHeight - capH);
+            }} else {{
+                drawPixelPipeSection(x - capOffsetX, bottomY, capW, bottomHeight, true);
+            }}
         }}
 
         function drawBird() {{
             if (currentSkin === 'default') {{
                 let imgToDraw = cleanedBirdCanvas || birdImage;
                 if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
-                    // Bắt buộc giữ nét Pixel khi phóng to
                     ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
                 }} else {{
@@ -306,13 +342,13 @@ flappy_bird_html = f"""
                 ctx.fillStyle = skins[currentSkin].color;
                 ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
                 ctx.strokeStyle = "#000";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
                 ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
 
                 ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(bird.x + 75, bird.y + 15, 16, 16);
+                ctx.fillRect(bird.x + 70, bird.y + 12, 14, 14);
                 ctx.fillStyle = "#000000";
-                ctx.fillRect(bird.x + 83, bird.y + 20, 6, 6);
+                ctx.fillRect(bird.x + 78, bird.y + 16, 5, 5);
             }}
         }}
 
