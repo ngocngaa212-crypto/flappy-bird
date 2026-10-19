@@ -1,16 +1,16 @@
 import streamlit as st
 
-st.set_page_config(page_title="Flappy Bird Pixel Art", page_icon="🐦", layout="centered")
+st.set_page_config(page_title="Flappy Bird RPG & Shop", page_icon="🐦", layout="centered")
 
-st.title("🐦 Flappy Bird - Phong cách Pixel Art")
-st.write("Nhấn phím **Space** hoặc nhấp chuột vào khung game để chơi!")
+st.title("🐦 Flappy Bird - 5 Cấp Độ & Cửa Hàng Nhân Vật")
+st.write("Vượt qua các màn chơi, kiếm tiền xu 🪙 để mở khóa các nhân vật siêu cute!")
 
 flappy_bird_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Flappy Bird</title>
+    <title>Flappy Bird RPG</title>
     <style>
         body {
             margin: 0;
@@ -33,6 +33,22 @@ flappy_bird_html = """
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
+        // Quản lý tiền xu và nhân vật đã mở khóa
+        let totalCoins = parseInt(localStorage.getItem("fb_coins")) || 0;
+        let unlockedSkins = JSON.parse(localStorage.getItem("fb_skins")) || ["default"];
+        let currentSkin = localStorage.getItem("fb_current_skin") || "default";
+
+        // Danh sách nhân vật trong Shop
+        const skins = {
+            "default": { name: "Chim Vàng Cổ Điển", price: 0, color: "#F4D03F" },
+            "ninja": { name: "Ninja Đen Bí Ẩn", price: 20, color: "#2E4053" },
+            "superman": { name: "Siêu Nhân Đỏ", price: 50, color: "#CB4335" },
+            "golden": { name: "Chim Thần Hoàng Kim", price: 100, color: "#F39C12" }
+        };
+
+        // Trạng thái game: 'menu', 'shop', 'level_select', 'playing', 'gameover'
+        let gameState = 'menu';
+
         let bird = {
             x: 50,
             y: 150,
@@ -43,78 +59,156 @@ flappy_bird_html = """
             velocity: 0
         };
 
+        // 5 Cấp độ chơi
+        let currentLevel = 1;
+        const levels = {
+            1: { name: "Cấp 1: Tập Sự", speed: 2, gap: 140, spawnRate: 100, targetScore: 5, reward: 10 },
+            2: { name: "Cấp 2: Thử Thách", speed: 2.5, gap: 130, spawnRate: 90, targetScore: 10, reward: 20 },
+            3: { name: "Cấp 3: Khó Nhằn", speed: 3, gap: 120, spawnRate: 80, targetScore: 15, reward: 35 },
+            4: { name: "Cấp 4: Chuyên Gia", speed: 3.5, gap: 110, spawnRate: 70, targetScore: 20, reward: 50 },
+            5: { name: "Cấp 5: Bậc Thầy", speed: 4, gap: 100, spawnRate: 60, targetScore: 30, reward: 100 }
+        };
+
         let pipes = [];
         let frameCount = 0;
         let score = 0;
-        let isGameOver = false;
+        let coinsEarnedThisRun = 0;
+        let levelCompleted = false;
 
-        function resetGame() {
+        function resetGame(level) {
+            currentLevel = level;
             bird.y = 150;
             bird.velocity = 0;
             pipes = [];
             score = 0;
+            coinsEarnedThisRun = 0;
             frameCount = 0;
-            isGameOver = false;
+            levelCompleted = false;
+            gameState = 'playing';
         }
 
+        // Xử lý sự kiện bàn phím & chuột
         document.addEventListener("keydown", function(e) {
             if (e.code === "Space") {
-                if (isGameOver) {
-                    resetGame();
-                } else {
+                if (gameState === 'playing') {
                     bird.velocity = bird.lift;
+                } else if (gameState === 'gameover' || levelCompleted) {
+                    gameState = 'level_select';
                 }
             }
         });
 
-        canvas.addEventListener("click", function() {
-            if (isGameOver) {
-                resetGame();
-            } else {
+        canvas.addEventListener("click", function(e) {
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            let mouseY = e.clientY - rect.top;
+
+            if (gameState === 'menu') {
+                // Click nút "Chơi Game"
+                if (mouseX >= 100 && mouseX <= 300 && mouseY >= 240 && mouseY <= 290) {
+                    gameState = 'level_select';
+                }
+                // Click nút "Cửa Hàng"
+                if (mouseX >= 100 && mouseX <= 300 && mouseY >= 320 && mouseY <= 370) {
+                    gameState = 'shop';
+                }
+            } else if (gameState === 'level_select') {
+                // Chọn level từ 1 đến 5
+                for (let i = 1; i <= 5; i++) {
+                    if (mouseX >= 50 && mouseX <= 350 && mouseY >= (70 + i * 65) && mouseY <= (120 + i * 65)) {
+                        resetGame(i);
+                    }
+                }
+                // Nút quay lại Menu chính
+                if (mouseX >= 50 && mouseX <= 150 && mouseY >= 20 && mouseY <= 50) {
+                    gameState = 'menu';
+                }
+            } else if (gameState === 'shop') {
+                // Nút quay lại Menu chính
+                if (mouseX >= 50 && mouseX <= 150 && mouseY >= 20 && mouseY <= 50) {
+                    gameState = 'menu';
+                }
+                // Mua / Chọn skin
+                let keys = Object.keys(skins);
+                for (let i = 0; i < keys.length; i++) {
+                    let skinKey = keys[i];
+                    if (mouseX >= 50 && mouseX <= 350 && mouseY >= (100 + i * 85) && mouseY <= (170 + i * 85)) {
+                        if (unlockedSkins.includes(skinKey)) {
+                            currentSkin = skinKey;
+                            localStorage.setItem("fb_current_skin", currentSkin);
+                        } else {
+                            let skin = skins[skinKey];
+                            if (totalCoins >= skin.price) {
+                                totalCoins -= skin.price;
+                                unlockedSkins.push(skinKey);
+                                currentSkin = skinKey;
+                                localStorage.setItem("fb_coins", totalCoins);
+                                localStorage.setItem("fb_skins", JSON.stringify(unlockedSkins));
+                                localStorage.setItem("fb_current_skin", currentSkin);
+                            } else {
+                                alert("Bạn không đủ tiền xu để mua nhân vật này!");
+                            }
+                        }
+                    }
+                }
+            } else if (gameState === 'playing') {
                 bird.velocity = bird.lift;
+            } else if (gameState === 'gameover' || levelCompleted) {
+                gameState = 'level_select';
             }
         });
 
         function spawnPipe() {
-            let gap = 130;
-            let topHeight = Math.floor(Math.random() * (canvas.height - gap - 120)) + 40;
+            let lvl = levels[currentLevel];
+            let topHeight = Math.floor(Math.random() * (canvas.height - lvl.gap - 120)) + 40;
             pipes.push({
                 x: canvas.width,
                 top: topHeight,
-                bottom: canvas.height - topHeight - gap,
+                bottom: canvas.height - topHeight - lvl.gap,
                 width: 55,
                 passed: false
             });
         }
 
         function update() {
-            if (isGameOver) return;
+            if (gameState !== 'playing') return;
 
+            let lvl = levels[currentLevel];
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            if (bird.y + bird.height >= canvas.height - 80 || bird.y <= 0) {
-                isGameOver = true;
+            // Chạm đất hoặc bay quá cao
+            if (bird.y + bird.height >= canvas.height - 50 || bird.y <= 0) {
+                gameState = 'gameover';
             }
 
-            if (frameCount % 90 === 0) {
+            if (frameCount % lvl.spawnRate === 0) {
                 spawnPipe();
             }
 
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= 2.5;
+                pipes[i].x -= lvl.speed;
 
+                // Kiểm tra va chạm ống
                 if (
                     bird.x < pipes[i].x + pipes[i].width &&
                     bird.x + bird.width > pipes[i].x &&
-                    (bird.y < pipes[i].top || bird.y + bird.height > canvas.height - pipes[i].bottom - 80)
+                    (bird.y < pipes[i].top || bird.y + bird.height > canvas.height - pipes[i].bottom - 50)
                 ) {
-                    isGameOver = true;
+                    gameState = 'gameover';
                 }
 
                 if (!pipes[i].passed && pipes[i].x + pipes[i].width < bird.x) {
                     score++;
                     pipes[i].passed = true;
+
+                    // Kiểm tra hoàn thành cấp độ
+                    if (score >= lvl.targetScore && !levelCompleted) {
+                        levelCompleted = true;
+                        coinsEarnedThisRun = lvl.reward;
+                        totalCoins += coinsEarnedThisRun;
+                        localStorage.setItem("fb_coins", totalCoins);
+                    }
                 }
 
                 if (pipes[i].x + pipes[i].width < 0) {
@@ -125,69 +219,183 @@ flappy_bird_html = """
             frameCount++;
         }
 
-        // Vẽ mây pixel trắng
-        function drawCloud(x, y) {
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(x, y, 70, 22);
-            ctx.fillRect(x + 12, y - 12, 45, 12);
-        }
-
-        // Vẽ bụi cây xanh phong cách pixel
-        function drawBush(x, y) {
-            ctx.fillStyle = "#65C18C";
-            ctx.fillRect(x, y, 60, 40);
-            ctx.fillRect(x + 15, y - 15, 30, 20);
-        }
-
-        function draw() {
-            // 1. Nền trời xanh đặc trưng
+        function drawBackground() {
+            // Nền trời xanh
             ctx.fillStyle = "#4FB7DB";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Các đám mây trên trời
-            drawCloud(40, 50);
-            drawCloud(240, 80);
-
-            // 3. Thảm cỏ xanh đậm và bụi cây phía dưới
-            drawBush(20, canvas.height - 110);
-            drawBush(270, canvas.height - 100);
-
-            ctx.fillStyle = "#1B7A63"; // Màu thảm cỏ giống ảnh mẫu
-            ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-            ctx.fillStyle = "#26997B";
-            ctx.fillRect(0, canvas.height - 80, canvas.width, 14);
-
-            // 4. Ống nước
-            ctx.fillStyle = "#558022";
-            for (let i = 0; i < pipes.length; i++) {
-                ctx.fillRect(pipes[i].x, 0, pipes[i].width, pipes[i].top);
-                ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom - 80, pipes[i].width, pipes[i].bottom);
-            }
-
-            // 5. Chú chim
-            ctx.fillStyle = "#F4D03F";
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+            // Mây trắng
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(bird.x + 18, bird.y + 4, 6, 6);
-            ctx.fillStyle = "#000000";
-            ctx.fillRect(bird.x + 22, bird.y + 6, 2, 2);
+            ctx.fillRect(50, 60, 70, 20);
+            ctx.fillRect(260, 90, 80, 22);
 
-            // 6. Điểm số
-            ctx.fillStyle = "white";
-            ctx.font = "bold 28px Arial";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "black";
-            ctx.strokeText("Điểm: " + score, 20, 40);
-            ctx.fillText("Điểm: " + score, 20, 40);
+            // Mặt đất
+            ctx.fillStyle = "#1B7A63";
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            ctx.fillStyle = "#26997B";
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 12);
+        }
 
-            if (isGameOver) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'menu') {
+                drawBackground();
+                // Tiêu đề game
                 ctx.fillStyle = "white";
                 ctx.font = "bold 32px Arial";
-                ctx.fillText("GAME OVER", 100, 220);
+                ctx.textAlign = "center";
+                ctx.fillText("FLAPPY BIRD", canvas.width / 2, 130);
+
+                // Hiển thị tổng tiền xu
+                ctx.font = "18px Arial";
+                ctx.fillText("🪙 Tiền xu: " + totalCoins, canvas.width / 2, 180);
+
+                // Nút Bắt Đầu
+                ctx.fillStyle = "#27AE60";
+                ctx.fillRect(100, 240, 200, 50);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("CHƠI GAME", canvas.width / 2, 272);
+
+                // Nút Cửa Hàng
+                ctx.fillStyle = "#2980B9";
+                ctx.fillRect(100, 320, 200, 50);
+                ctx.fillStyle = "white";
+                ctx.fillText("CỬA HÀNG NHÂN VẬT", canvas.width / 2, 352);
+                ctx.textAlign = "left";
+
+            } else if (gameState === 'level_select') {
+                drawBackground();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 24px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("CHỌN CẤP ĐỘ", canvas.width / 2, 50);
+
+                // Nút Back
+                ctx.fillStyle = "#7F8C8D";
+                ctx.fillRect(50, 20, 100, 30);
+                ctx.fillStyle = "white";
+                ctx.font = "14px Arial";
+                ctx.fillText("⬅ Quay lại", 100, 40);
+
+                // Vẽ 5 cấp độ
+                for (let i = 1; i <= 5; i++) {
+                    let lvl = levels[i];
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                    ctx.fillRect(50, 70 + i * 65, 300, 45);
+
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 16px Arial";
+                    ctx.fillText(lvl.name, 70, 98 + i * 65);
+                    ctx.font = "12px Arial";
+                    ctx.fillStyle = "#F1C40F";
+                    ctx.fillText("Mục tiêu: " + lvl.targetScore + " điểm | Thưởng: 🪙" + lvl.reward, 200, 98 + i * 65);
+                }
+                ctx.textAlign = "left";
+
+            } else if (gameState === 'shop') {
+                drawBackground();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 24px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("CỬA HÀNG NHÂN VẬT", canvas.width / 2, 50);
                 ctx.font = "16px Arial";
-                ctx.fillText("Nhấn chuột hoặc Space để chơi lại", 75, 265);
+                ctx.fillStyle = "#F1C40F";
+                ctx.fillText("🪙 Số xu của bạn: " + totalCoins, canvas.width / 2, 80);
+
+                // Nút Back
+                ctx.fillStyle = "#7F8C8D";
+                ctx.fillRect(50, 20, 100, 30);
+                ctx.fillStyle = "white";
+                ctx.font = "14px Arial";
+                ctx.fillText("⬅ Quay lại", 100, 40);
+
+                let keys = Object.keys(skins);
+                for (let i = 0; i < keys.length; i++) {
+                    let skinKey = keys[i];
+                    let skin = skins[skinKey];
+                    let isUnlocked = unlockedSkins.includes(skinKey);
+                    let isSelected = (currentSkin === skinKey);
+
+                    ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.5)";
+                    ctx.fillRect(50, 100 + i * 85, 300, 70);
+
+                    // Vẽ màu mẫu nhân vật
+                    ctx.fillStyle = skin.color;
+                    ctx.fillRect(70, 120 + i * 85, 30, 25);
+
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 16px Arial";
+                    ctx.fillText(skin.name, 115, 128 + i * 85);
+
+                    ctx.font = "13px Arial";
+                    if (isSelected) {
+                        ctx.fillStyle = "#2ECC71";
+                        ctx.fillText("Đang sử dụng", 115, 150 + i * 85);
+                    } else if (isUnlocked) {
+                        ctx.fillStyle = "#AED6F1";
+                        ctx.fillText("Đã sở hữu (Nhấn để chọn)", 115, 150 + i * 85);
+                    } else {
+                        ctx.fillStyle = "#F1C40F";
+                        ctx.fillText("Giá: 🪙 " + skin.price, 115, 150 + i * 85);
+                    }
+                }
+                ctx.textAlign = "left";
+
+            } else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {
+                drawBackground();
+
+                // Vẽ ống nước
+                let lvl = levels[currentLevel];
+                ctx.fillStyle = "#558022";
+                for (let i = 0; i < pipes.length; i++) {
+                    ctx.fillRect(pipes[i].x, 0, pipes[i].width, pipes[i].top);
+                    ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom - 50, pipes[i].width, pipes[i].bottom);
+                }
+
+                // Vẽ nhân vật theo skin hiện tại
+                ctx.fillStyle = skins[currentSkin].color;
+                ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(bird.x + 18, bird.y + 4, 6, 6);
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(bird.x + 22, bird.y + 6, 2, 2);
+
+                // Hiển thị thông tin trong màn chơi
+                ctx.fillStyle = "white";
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("Cấp: " + currentLevel + " | Điểm: " + score + "/" + lvl.targetScore, 20, 30);
+                ctx.fillText("🪙 " + totalCoins, 310, 30);
+
+                if (gameState === 'gameover') {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "#E74C3C";
+                    ctx.font = "bold 32px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("THẤT BẠI!", canvas.width / 2, 210);
+                    ctx.fillStyle = "white";
+                    ctx.font = "16px Arial";
+                    ctx.fillText("Nhấn Space hoặc Click để chọn lại cấp độ", canvas.width / 2, 260);
+                    ctx.textAlign = "left";
+                }
+
+                if (levelCompleted) {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "#2ECC71";
+                    ctx.font = "bold 32px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("HOÀN THÀNH MÀN!", canvas.width / 2, 190);
+                    ctx.fillStyle = "#F1C40F";
+                    ctx.font = "bold 20px Arial";
+                    ctx.fillText("Nhận thưởng: + 🪙 " + coinsEarnedThisRun, canvas.width / 2, 235);
+                    ctx.fillStyle = "white";
+                    ctx.font = "15px Arial";
+                    ctx.fillText("Nhấn Space hoặc Click để tiếp tục", canvas.width / 2, 280);
+                    ctx.textAlign = "left";
+                }
             }
         }
 
