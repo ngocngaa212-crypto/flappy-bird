@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Đã mở khóa theo thứ tự màn & Tinh chỉnh độ khó siêu dễ!")
+st.write("Hành trình của Tom - Cập nhật mục tiêu điểm số từng màn (10, 20, 30, 40, 50 điểm)!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -111,12 +111,12 @@ flappy_bird_html = f"""
                 shop: "CỬA HÀNG",
                 selectLevel: "CHỌN CẤP ĐỘ",
                 back: "<- LÙI",
-                coins: "XU: 🪙 ",
+                coins: "XU: ",
                 target: "Mục tiêu: ",
-                reward: "Thưởng: 🪙 ",
+                reward: "Thưởng: ",
                 using: "ĐANG DÙNG",
                 owned: "ĐÃ SỞ HỮU",
-                price: "GIÁ: 🪙 ",
+                price: "GIÁ: ",
                 confirmTitle: "XÁC NHẬN MUA",
                 confirmAsk: "Bạn có chắc muốn mua?",
                 buy: "MUA",
@@ -124,7 +124,7 @@ flappy_bird_html = f"""
                 failed: "THẤT BẠI!",
                 retry: "Nhấn Space để chọn lại",
                 completed: "HOÀN THÀNH!",
-                earned: "Thưởng: + 🪙 ",
+                earned: "Thưởng: + ",
                 continue: "Nhấn Space để tiếp tục",
                 notEnoughCoins: "Bạn không đủ tiền xu!",
                 locked: "🔒 BỊ KHÓA",
@@ -142,12 +142,12 @@ flappy_bird_html = f"""
                 shop: "SKIN SHOP",
                 selectLevel: "SELECT LEVEL",
                 back: "<- BACK",
-                coins: "COINS: 🪙 ",
+                coins: "COINS: ",
                 target: "Target: ",
-                reward: "Reward: 🪙 ",
+                reward: "Reward: ",
                 using: "EQUIPPED",
                 owned: "OWNED",
-                price: "PRICE: 🪙 ",
+                price: "PRICE: ",
                 confirmTitle: "CONFIRM PURCHASE",
                 confirmAsk: "Are you sure you want to buy?",
                 buy: "BUY",
@@ -155,7 +155,7 @@ flappy_bird_html = f"""
                 failed: "GAME OVER!",
                 retry: "Press Space to retry",
                 completed: "LEVEL CLEAR!",
-                earned: "Reward: + 🪙 ",
+                earned: "Reward: + ",
                 continue: "Press Space to continue",
                 notEnoughCoins: "Not enough coins!",
                 locked: "🔒 LOCKED",
@@ -173,8 +173,6 @@ flappy_bird_html = f"""
         let totalCoins = parseInt(localStorage.getItem("tom_coins")) || 0;
         let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["normal"];
         let currentSkin = localStorage.getItem("tom_current_skin") || "normal";
-        
-        // Quản lý cấp độ đã mở khóa (Mặc định mở khóa Cấp 1)
         let unlockedLevel = parseInt(localStorage.getItem("tom_unlocked_level")) || 1;
 
         const skins = {{
@@ -187,25 +185,24 @@ flappy_bird_html = f"""
         let gameState = 'menu';
         let pendingBuySkinKey = null;
 
-        // Điều chỉnh trọng lực nhẹ nhàng & nảy mượt hơn cho Tom
         let bird = {{
             x: 30,
             y: 150,
             width: 125,
             height: 75,
-            gravity: 0.35,  /* Giảm trọng lực để mèo rơi chậm hơn */
-            lift: -7.5,     /* Lực nảy nhẹ nhàng, dễ điều khiển */
+            gravity: 0.35, 
+            lift: -7.5,     
             velocity: 0
         }};
 
         let currentLevel = 1;
-        // Mở rộng thêm khoảng cách gap giữa các ống để trò chơi siêu dễ thở
+        // Cập nhật điểm số mục tiêu: Cấp 1: 10đ, Cấp 2: 20đ, Cấp 3: 30đ, Cấp 4: 40đ, Cấp 5: 50đ
         const levels = {{
-            1: {{ speed: 1.2, gap: 240, spawnRate: 130, targetScore: 3, reward: 15 }},
-            2: {{ speed: 1.4, gap: 230, spawnRate: 120, targetScore: 5, reward: 30 }},
-            3: {{ speed: 1.6, gap: 220, spawnRate: 110, targetScore: 8, reward: 50 }},
-            4: {{ speed: 1.8, gap: 210, spawnRate: 100, targetScore: 12, reward: 80 }},
-            5: {{ speed: 2.1, gap: 200, spawnRate: 90, targetScore: 15, reward: 120 }}
+            1: {{ speed: 1.2, gap: 240, spawnRate: 130, targetScore: 10, reward: 15 }},
+            2: {{ speed: 1.35, gap: 230, spawnRate: 120, targetScore: 20, reward: 30 }},
+            3: {{ speed: 1.5, gap: 220, spawnRate: 110, targetScore: 30, reward: 50 }},
+            4: {{ speed: 1.65, gap: 210, spawnRate: 100, targetScore: 40, reward: 80 }},
+            5: {{ speed: 1.8, gap: 200, spawnRate: 90, targetScore: 50, reward: 120 }}
         }};
 
         let pipes = [];
@@ -241,7 +238,6 @@ flappy_bird_html = f"""
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
-            // Xử lý nút Chuyển đổi Ngôn ngữ 🌐 VI / EN
             if (gameState === 'menu' && mouseX >= 280 && mouseX <= 380 && mouseY >= 15 && mouseY <= 50) {{
                 currentLang = (currentLang === "vi") ? "en" : "vi";
                 localStorage.setItem("tom_lang", currentLang);
@@ -250,7 +246,6 @@ flappy_bird_html = f"""
 
             if (pendingBuySkinKey) {{
                 let t = i18n[currentLang];
-                // Nút MUA
                 if (mouseX >= 40 && mouseX <= 180 && mouseY >= 330 && mouseY <= 380) {{
                     let skin = skins[pendingBuySkinKey];
                     if (totalCoins >= skin.price) {{
@@ -265,7 +260,6 @@ flappy_bird_html = f"""
                     }}
                     pendingBuySkinKey = null;
                 }}
-                // Nút HỦY
                 else if (mouseX >= 220 && mouseX <= 360 && mouseY >= 330 && mouseY <= 380) {{
                     pendingBuySkinKey = null;
                 }}
@@ -282,7 +276,6 @@ flappy_bird_html = f"""
             }} else if (gameState === 'level_select') {{
                 for (let i = 1; i <= 5; i++) {{
                     if (mouseX >= 20 && mouseX <= 380 && mouseY >= (55 + i * 68) && mouseY <= (110 + i * 68)) {{
-                        // Chỉ cho phép chơi nếu cấp độ đó đã mở khóa
                         if (i <= unlockedLevel) {{
                             resetGame(i);
                         }}
@@ -341,7 +334,6 @@ flappy_bird_html = f"""
                 spawnPipe();
             }}
 
-            // Tinh chỉnh Hitbox nhỏ gọn cho người chơi dễ qua
             let hitboxPaddingX = 22;
             let hitboxPaddingY = 14;
 
@@ -366,7 +358,6 @@ flappy_bird_html = f"""
                         totalCoins += coinsEarnedThisRun;
                         localStorage.setItem("tom_coins", totalCoins);
 
-                        // Tự động mở khóa cấp độ tiếp theo khi thắng
                         if (currentLevel === unlockedLevel && unlockedLevel < 5) {{
                             unlockedLevel++;
                             localStorage.setItem("tom_unlocked_level", unlockedLevel);
@@ -389,6 +380,31 @@ flappy_bird_html = f"""
                 ctx.fillStyle = "#4FB7DB";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }}
+        }}
+
+        function drawTomCoinIcon(x, y, radius = 10) {{
+            ctx.save();
+            ctx.fillStyle = "#D4AC0D";
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#F4D03F";
+            ctx.beginPath();
+            ctx.arc(x, y, radius - 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            let scale = radius / 10;
+            ctx.fillStyle = "#99A3A4";
+            ctx.fillRect(x - 5 * scale, y - 6 * scale, 3 * scale, 3 * scale);
+            ctx.fillRect(x + 2 * scale, y - 6 * scale, 3 * scale, 3 * scale);
+            ctx.fillRect(x - 5 * scale, y - 3 * scale, 10 * scale, 6 * scale);
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(x - 3 * scale, y - 2 * scale, 2 * scale, 2 * scale);
+            ctx.fillRect(x + 1 * scale, y - 2 * scale, 2 * scale, 2 * scale);
+            ctx.fillStyle = "#E74C3C";
+            ctx.fillRect(x - 1 * scale, y + 1 * scale, 2 * scale, 1 * scale);
+            ctx.restore();
         }}
 
         function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
@@ -487,9 +503,10 @@ flappy_bird_html = f"""
 
             drawPixelText(t.confirmAsk, canvas.width / 2, 240, 22);
             drawPixelText(skin.name, canvas.width / 2, 270, 24, "center", "#3498DB");
-            drawPixelText(t.price + skin.price, canvas.width / 2, 300, 24, "center", "#F1C40F");
+            
+            drawPixelText(t.price + skin.price, canvas.width / 2 - 12, 300, 24, "center", "#F1C40F");
+            drawTomCoinIcon(canvas.width / 2 + 55, 293, 11);
 
-            // Nút MUA
             ctx.fillStyle = "#27AE60";
             ctx.fillRect(40, 330, 140, 50);
             ctx.strokeStyle = "#000";
@@ -497,9 +514,10 @@ flappy_bird_html = f"""
             ctx.strokeRect(40, 330, 140, 50);
             drawPixelText(t.buy, 110, 363, 26);
 
-            // Nút HỦY
             ctx.fillStyle = "#C0392B";
             ctx.fillRect(220, 330, 140, 50);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 3;
             ctx.strokeRect(220, 330, 140, 50);
             drawPixelText(t.cancel, 290, 363, 26);
         }}
@@ -511,9 +529,10 @@ flappy_bird_html = f"""
             if (gameState === 'menu') {{
                 drawBackground();
                 drawPixelText("JOURNEY OF TOM", canvas.width / 2, 115, 32, "center", "#F1C40F");
-                drawPixelText(t.coins + totalCoins, canvas.width / 2, 165, 24);
+                
+                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 165, 24);
+                drawTomCoinIcon(canvas.width / 2 + 52, 157, 11);
 
-                // Nút chuyển đổi Ngôn ngữ
                 ctx.fillStyle = "#8E44AD";
                 ctx.fillRect(280, 15, 100, 38);
                 ctx.strokeStyle = "#FFF";
@@ -521,7 +540,6 @@ flappy_bird_html = f"""
                 ctx.strokeRect(280, 15, 100, 38);
                 drawPixelText((currentLang === "vi" ? "🌐 VI" : "🌐 EN"), 330, 40, 20);
 
-                // Nút Chơi Game
                 ctx.fillStyle = "#27AE60";
                 ctx.fillRect(60, 210, 280, 60);
                 ctx.strokeStyle = "#000";
@@ -529,7 +547,6 @@ flappy_bird_html = f"""
                 ctx.strokeRect(60, 210, 280, 60);
                 drawPixelText(t.play, canvas.width / 2, 250, 26);
 
-                // Nút Cửa Hàng
                 ctx.fillStyle = "#2980B9";
                 ctx.fillRect(60, 290, 280, 60);
                 ctx.strokeRect(60, 290, 280, 60);
@@ -539,7 +556,6 @@ flappy_bird_html = f"""
                 drawBackground();
                 drawPixelText(t.selectLevel, canvas.width / 2, 42, 30, "center", "#F1C40F");
 
-                // Nút Lùi
                 ctx.fillStyle = "#7F8C8D";
                 ctx.fillRect(20, 15, 110, 38);
                 ctx.strokeStyle = "#000";
@@ -560,6 +576,7 @@ flappy_bird_html = f"""
                     if (isUnlocked) {{
                         drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left");
                         drawPixelText(t.target + lvl.targetScore + " | " + t.reward + lvl.reward, 35, 100 + i * 68, 18, "left", "#F1C40F");
+                        drawTomCoinIcon(255, 93 + i * 68, 8);
                     }} else {{
                         drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left", "#888");
                         drawPixelText(t.locked, 35, 100 + i * 68, 18, "left", "#E74C3C");
@@ -569,9 +586,9 @@ flappy_bird_html = f"""
             }} else if (gameState === 'shop') {{
                 drawBackground();
                 drawPixelText(t.shop, canvas.width / 2, 38, 30, "center", "#F1C40F");
-                drawPixelText(t.coins + totalCoins, canvas.width / 2, 65, 20);
+                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 65, 20);
+                drawTomCoinIcon(canvas.width / 2 + 48, 58, 10);
 
-                // Nút Lùi
                 ctx.fillStyle = "#7F8C8D";
                 ctx.fillRect(20, 15, 110, 38);
                 ctx.strokeStyle = "#000";
@@ -611,6 +628,7 @@ flappy_bird_html = f"""
                         drawPixelText(t.owned, 102, 134 + i * 88, 20, "left", "#AED6F1");
                     }} else {{
                         drawPixelText(t.price + skin.price, 102, 134 + i * 88, 20, "left", "#F1C40F");
+                        drawTomCoinIcon(225 + skin.price.toString().length * 10, 127 + i * 88, 8);
                     }}
                 }}
 
@@ -627,7 +645,9 @@ flappy_bird_html = f"""
                 drawBird();
 
                 drawPixelText("LVL:" + currentLevel + " | " + score + "/" + lvl.targetScore, 15, 30, 22, "left");
-                drawPixelText("🪙 " + totalCoins, 385, 30, 22, "right");
+                
+                drawPixelText(totalCoins.toString(), 360, 30, 22, "right");
+                drawTomCoinIcon(375, 23, 10);
 
                 if (gameState === 'gameover') {{
                     ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
@@ -640,7 +660,9 @@ flappy_bird_html = f"""
                     ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     drawPixelText(t.completed, canvas.width / 2, 175, 32, "center", "#2ECC71");
-                    drawPixelText(t.earned + coinsEarnedThisRun, canvas.width / 2, 220, 22, "center", "#F1C40F");
+                    
+                    drawPixelText(t.earned + coinsEarnedThisRun, canvas.width / 2 - 10, 220, 22, "center", "#F1C40F");
+                    drawTomCoinIcon(canvas.width / 2 + 65, 213, 10);
                     
                     if (currentLevel < 5) {{
                         drawPixelText(t.unlockedNext, canvas.width / 2, 255, 20, "center", "#3498DB");
