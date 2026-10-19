@@ -429,4 +429,460 @@ flappy_bird_html = f"""
                 x: canvas.width,
                 top: topHeight,
                 bottom: canvas.height - topHeight - lvl.gap,
-                width:
+                width: 58,
+                passed: false
+            }});
+        }}
+
+        function update() {{
+            if (gameState !== 'playing' || pendingBuySkinKey || showGuideModal) return;
+
+            let lvl = levels[currentLevel];
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+
+            if (bird.y + bird.height >= canvas.height - 45 || bird.y <= 0) {{
+                gameState = 'gameover';
+                updateMusicState();
+            }}
+
+            if (frameCount % lvl.spawnRate === 0) {{
+                spawnPipe();
+            }}
+
+            let hitboxPaddingX = 22;
+            let hitboxPaddingY = 14;
+
+            for (let i = pipes.length - 1; i >= 0; i--) {{
+                pipes[i].x -= lvl.speed;
+
+                if (
+                    (bird.x + hitboxPaddingX) < pipes[i].x + pipes[i].width &&
+                    (bird.x + bird.width - hitboxPaddingX) > pipes[i].x &&
+                    ((bird.y + hitboxPaddingY) < pipes[i].top || (bird.y + bird.height - hitboxPaddingY) > canvas.height - pipes[i].bottom - 45)
+                ) {{
+                    gameState = 'gameover';
+                    updateMusicState();
+                }}
+
+                if (!pipes[i].passed && pipes[i].x + pipes[i].width < bird.x) {{
+                    score++;
+                    pipes[i].passed = true;
+
+                    if (score >= lvl.targetScore && !levelCompleted) {{
+                        levelCompleted = true;
+                        coinsEarnedThisRun = lvl.reward;
+                        totalCoins += coinsEarnedThisRun;
+                        localStorage.setItem("tom_coins", totalCoins);
+
+                        if (currentLevel === unlockedLevel && unlockedLevel < 5) {{
+                            unlockedLevel++;
+                            localStorage.setItem("tom_unlocked_level", unlockedLevel);
+                        }}
+                    }}
+                }}
+
+                if (pipes[i].x + pipes[i].width < 0) {{
+                    pipes.splice(i, 1);
+                }}
+            }}
+
+            frameCount++;
+        }}
+
+        function drawBackground() {{
+            let activeBg = bgImage1;
+            if (gameState === 'playing' && playStartTime > 0) {{
+                let elapsedSeconds = (Date.now() - playStartTime) / 1000;
+                if (elapsedSeconds >= 60 && bgImage2.complete && bgImage2.naturalWidth !== 0) {{
+                    activeBg = bgImage2;
+                }}
+            }}
+
+            if (activeBg.src !== "" && activeBg.complete && activeBg.naturalWidth !== 0) {{
+                ctx.drawImage(activeBg, 0, 0, canvas.width, canvas.height);
+            }} else {{
+                ctx.fillStyle = "#4FB7DB";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }}
+        }}
+
+        function drawTomCoinIcon(x, y, radius = 10) {{
+            ctx.save();
+            ctx.fillStyle = "#D4AC0D";
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#F4D03F";
+            ctx.beginPath();
+            ctx.arc(x, y, radius - 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            let scale = radius / 10;
+            ctx.fillStyle = "#99A3A4";
+            ctx.fillRect(x - 5 * scale, y - 6 * scale, 3 * scale, 3 * scale);
+            ctx.fillRect(x + 2 * scale, y - 6 * scale, 3 * scale, 3 * scale);
+            ctx.fillRect(x - 5 * scale, y - 3 * scale, 10 * scale, 6 * scale);
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(x - 3 * scale, y - 2 * scale, 2 * scale, 2 * scale);
+            ctx.fillRect(x + 1 * scale, y - 2 * scale, 2 * scale, 2 * scale);
+            ctx.fillStyle = "#E74C3C";
+            ctx.fillRect(x - 1 * scale, y + 1 * scale, 2 * scale, 1 * scale);
+            ctx.restore();
+        }}
+
+        function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
+            ctx.font = size + "px 'VT323', monospace";
+            ctx.textAlign = align;
+            ctx.fillStyle = "#000000";
+            ctx.lineWidth = Math.max(3, Math.floor(size / 6));
+            ctx.strokeText(text, x, y);
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+        }}
+
+        function drawCleanText(text, x, y, size, align = "center", textColor = "#2C3E50") {{
+            ctx.font = size + "px 'VT323', monospace";
+            ctx.textAlign = align;
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+        }}
+
+        function drawPixelPipeSection(x, y, w, h, isCap = false) {{
+            ctx.fillStyle = "#73BF2E";
+            ctx.fillRect(x, y, w, h);
+
+            ctx.fillStyle = "#B5E61D";
+            ctx.fillRect(x + 6, y, 8, h);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(x + 8, y, 2, h);
+
+            ctx.fillStyle = "#3F7A00";
+            ctx.fillRect(x + w - 14, y, 8, h);
+
+            ctx.fillStyle = "#1E4700";
+            ctx.fillRect(x + w - 6, y, 6, h);
+
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+        }}
+
+        function drawPixelPipe(x, topHeight, bottomHeight) {{
+            const pipeW = 56;
+            const capW = 66;
+            const capH = 24;
+            const capOffsetX = (capW - pipeW) / 2;
+
+            if (topHeight > capH) {{
+                drawPixelPipeSection(x, 0, pipeW, topHeight - capH);
+                drawPixelPipeSection(x - capOffsetX, topHeight - capH, capW, capH, true);
+            }} else {{
+                drawPixelPipeSection(x - capOffsetX, 0, capW, topHeight, true);
+            }}
+
+            const bottomY = canvas.height - bottomHeight - 45;
+            if (bottomHeight > capH) {{
+                drawPixelPipeSection(x - capOffsetX, bottomY, capW, capH, true);
+                drawPixelPipeSection(x, bottomY + capH, pipeW, bottomHeight - capH);
+            }} else {{
+                drawPixelPipeSection(x - capOffsetX, bottomY, capW, bottomHeight, true);
+            }}
+        }}
+
+        function drawBird() {{
+            let imgToDraw = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
+            if (imgToDraw && (imgToDraw.complete || imgToDraw.width)) {{
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(imgToDraw, bird.x, bird.y, bird.width, bird.height);
+            }} else {{
+                ctx.fillStyle = skins[currentSkin].color;
+                ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
+            }}
+        }}
+
+        function drawGuideModal() {{
+            if (!showGuideModal) return;
+            let t = i18n[currentLang];
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(15, 30, 370, 440);
+            ctx.strokeStyle = "#2C3E50";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(15, 30, 370, 440);
+
+            drawCleanText(t.guideTitle, canvas.width / 2, 70, 28, "center", "#1B4F72");
+
+            let startY = 110;
+            let stepGap = 38;
+            drawCleanText(t.guideStep1, 25, startY, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep2, 25, startY + stepGap, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep3, 25, startY + stepGap * 2, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep4, 25, startY + stepGap * 3, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep5, 25, startY + stepGap * 4, 20, "left", "#2C3E50");
+            drawCleanText(t.guideStep6, 25, startY + stepGap * 5, 20, "left", "#2C3E50");
+
+            drawCleanText(t.guideWish, canvas.width / 2, 385, 22, "center", "#C0392B");
+
+            ctx.fillStyle = "#E74C3C";
+            ctx.fillRect(130, 410, 140, 45);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(130, 410, 140, 45);
+            drawPixelText(t.closeBtn, 200, 440, 22);
+        }}
+
+        function drawConfirmationModal() {{
+            if (!pendingBuySkinKey) return;
+            let skin = skins[pendingBuySkinKey];
+            let t = i18n[currentLang];
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#2C3E50";
+            ctx.fillRect(15, 65, 370, 345);
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(15, 65, 370, 345);
+
+            drawPixelText(t.confirmTitle, canvas.width / 2, 105, 26, "center", "#F1C40F");
+
+            let imgPreview = cleanedSkinCanvases[pendingBuySkinKey] || skinImages[pendingBuySkinKey];
+            if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
+                ctx.imageSmoothingEnabled = false;
+                ctx.fillStyle = "rgba(0,0,0,0.6)";
+                ctx.fillRect(130, 120, 140, 85);
+                ctx.strokeStyle = "#F1C40F";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(130, 120, 140, 85);
+                ctx.drawImage(imgPreview, 135, 125, 130, 75);
+            }}
+
+            drawPixelText(t.confirmAsk, canvas.width / 2, 240, 22);
+            drawPixelText(skin.name, canvas.width / 2, 270, 24, "center", "#3498DB");
+            
+            drawPixelText(t.price + skin.price, canvas.width / 2 - 12, 300, 24, "center", "#F1C40F");
+            drawTomCoinIcon(canvas.width / 2 + 55, 293, 11);
+
+            ctx.fillStyle = "#27AE60";
+            ctx.fillRect(40, 330, 140, 50);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 330, 140, 50);
+            drawPixelText(t.buy, 110, 363, 26);
+
+            ctx.fillStyle = "#C0392B";
+            ctx.fillRect(220, 330, 140, 50);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(220, 330, 140, 50);
+            drawPixelText(t.cancel, 290, 363, 26);
+        }}
+
+        function draw() {{
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let t = i18n[currentLang];
+
+            if (gameState === 'menu') {{
+                drawBackground();
+                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 115, 32, "center", "#F1C40F");
+                
+                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 165, 24);
+                drawTomCoinIcon(canvas.width / 2 + 52, 157, 11);
+
+                ctx.fillStyle = "#D35400";
+                ctx.fillRect(215, 15, 42, 38);
+                ctx.strokeStyle = "#FFF";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(215, 15, 42, 38);
+                drawPixelText("📖", 236, 41, 20);
+
+                ctx.fillStyle = "#8E44AD";
+                ctx.fillRect(270, 15, 90, 38);
+                ctx.strokeStyle = "#FFF";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(270, 15, 90, 38);
+                drawPixelText((currentLang === "vi" ? "🌐 VI" : "🌐 EN"), 315, 40, 18);
+
+                ctx.fillStyle = "#27AE60";
+                ctx.fillRect(60, 210, 280, 60);
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 4;
+                ctx.strokeRect(60, 210, 280, 60);
+                drawPixelText(t.play, canvas.width / 2, 250, 26);
+
+                ctx.fillStyle = "#2980B9";
+                ctx.fillRect(60, 290, 280, 60);
+                ctx.strokeRect(60, 290, 280, 60);
+                drawPixelText(t.shop, canvas.width / 2, 330, 26);
+
+                drawGuideModal();
+
+            }} else if (gameState === 'level_select') {{
+                drawBackground();
+                drawPixelText(t.selectLevel, canvas.width / 2, 42, 30, "center", "#F1C40F");
+
+                ctx.fillStyle = "#7F8C8D";
+                ctx.fillRect(20, 15, 110, 38);
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(20, 15, 110, 38);
+                drawPixelText(t.back, 75, 40, 20);
+
+                for (let i = 1; i <= 5; i++) {{
+                    let lvl = levels[i];
+                    let isUnlocked = (i <= unlockedLevel);
+
+                    ctx.fillStyle = isUnlocked ? "rgba(0, 0, 0, 0.8)" : "rgba(50, 50, 50, 0.85)";
+                    ctx.fillRect(20, 55 + i * 68, 360, 53);
+                    ctx.strokeStyle = isUnlocked ? "#2ECC71" : "#555";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(20, 55 + i * 68, 360, 53);
+
+                    if (isUnlocked) {{
+                        drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left");
+                        drawPixelText(t.target + lvl.targetScore + " | Phần thưởng: " + lvl.reward, 35, 100 + i * 68, 16, "left", "#F1C40F");
+                        drawTomCoinIcon(325, 93 + i * 68, 8);
+                    }} else {{
+                        drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left", "#888");
+                        drawPixelText(t.locked, 35, 100 + i * 68, 18, "left", "#E74C3C");
+                    }}
+                }}
+
+            }} else if (gameState === 'shop') {{
+                drawBackground();
+                drawPixelText(t.shop, canvas.width / 2, 38, 30, "center", "#F1C40F");
+                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 65, 20);
+                drawTomCoinIcon(canvas.width / 2 + 48, 58, 10);
+
+                ctx.fillStyle = "#7F8C8D";
+                ctx.fillRect(20, 15, 110, 38);
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(20, 15, 110, 38);
+                drawPixelText(t.back, 75, 40, 20);
+
+                let keys = Object.keys(skins);
+                for (let i = 0; i < keys.length; i++) {{
+                    let skinKey = keys[i];
+                    let skin = skins[skinKey];
+                    let isUnlocked = unlockedSkins.includes(skinKey);
+                    let isSelected = (currentSkin === skinKey);
+
+                    ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.8)";
+                    ctx.fillRect(15, 75 + i * 88, 370, 78);
+                    ctx.strokeStyle = isSelected ? "#2ECC71" : "#000";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(15, 75 + i * 88, 370, 78);
+
+                    let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
+                    if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(imgPreview, 25, 86 + i * 88, 65, 42);
+                    }} else {{
+                        ctx.fillStyle = skin.color;
+                        ctx.fillRect(30, 90 + i * 88, 35, 35);
+                        ctx.strokeStyle = "#000";
+                        ctx.strokeRect(30, 90 + i * 88, 35, 35);
+                    }}
+
+                    drawPixelText(skin.name, 102, 106 + i * 88, 22, "left");
+
+                    if (isSelected) {{
+                        drawPixelText(t.using, 102, 134 + i * 88, 20, "left", "#2ECC71");
+                    }} else if (isUnlocked) {{
+                        drawPixelText(t.owned, 102, 134 + i * 88, 20, "left", "#AED6F1");
+                    }} else {{
+                        drawPixelText(t.price + skin.price, 102, 134 + i * 88, 20, "left", "#F1C40F");
+                        drawTomCoinIcon(225 + skin.price.toString().length * 10, 127 + i * 88, 8);
+                    }}
+                }}
+
+                drawConfirmationModal();
+
+            }} else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {{
+                drawBackground();
+
+                let lvl = levels[currentLevel];
+                for (let i = 0; i < pipes.length; i++) {{
+                    drawPixelPipe(pipes[i].x, pipes[i].top, pipes[i].bottom);
+                }}
+
+                drawBird();
+
+                drawPixelText("LVL:" + currentLevel + " | " + score + "/" + lvl.targetScore, 15, 30, 22, "left");
+                
+                drawPixelText(totalCoins.toString(), 360, 30, 22, "right");
+                drawTomCoinIcon(375, 23, 10);
+
+                if (gameState === 'gameover') {{
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    drawPixelText(t.failed, canvas.width / 2, 210, 36, "center", "#E74C3C");
+                    drawPixelText(t.retry, canvas.width / 2, 260, 20);
+                }}
+
+                if (levelCompleted) {{
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    if (currentLevel === 5) {{
+                        drawPixelText(t.meetAngelaLine1, canvas.width / 2, 75, 22, "center", "#F1C40F");
+                        drawPixelText(t.meetAngelaLine2, canvas.width / 2, 100, 22, "center", "#F1C40F");
+
+                        ctx.imageSmoothingEnabled = false;
+                        let tomImg = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
+                        if (tomImg && (tomImg.complete || tomImg.width)) {{
+                            ctx.drawImage(tomImg, 90, 130, 100, 60);
+                        }}
+                        let angelaImgToDraw = cleanedAngelaCanvas || angelaImage;
+                        if (angelaImgToDraw && (angelaImgToDraw.complete || angelaImgToDraw.width)) {{
+                            ctx.drawImage(angelaImgToDraw, 210, 130, 100, 60);
+                        }} else {{
+                            ctx.fillStyle = "#FFC0CB";
+                            ctx.fillRect(210, 130, 100, 60);
+                        }}
+
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 15, 230, 22, "center", "#2ECC71");
+                        drawTomCoinIcon(canvas.width / 2 + 115, 223, 10);
+
+                        drawPixelText(t.continue, canvas.width / 2, 290, 22);
+
+                    }} else {{
+                        drawPixelText(t.passLevel + currentLevel, canvas.width / 2, 110, 28, "center", "#2ECC71");
+                        
+                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 175, 22, "center", "#F1C40F");
+                        drawTomCoinIcon(canvas.width / 2 + 105, 168, 10);
+                        
+                        if (currentLevel < 5) {{
+                            drawPixelText(t.unlockedNext, canvas.width / 2, 230, 20, "center", "#3498DB");
+                        }}
+                        
+                        drawPixelText(t.continue, canvas.width / 2, 290, 20);
+                    }}
+                }}
+            }}
+        }}
+
+        function loop() {{
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }}
+
+        loop();
+    </script>
+</body>
+</html>
+"""
+
+st.components.v1.html(flappy_bird_html, height=540)
