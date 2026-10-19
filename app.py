@@ -534,4 +534,99 @@ flappy_bird_html = f"""
                     ctx.strokeRect(20, 55 + i * 68, 360, 53);
 
                     drawPixelText(t.lvlNames[i], 35, 82 + i * 68, 10, "left");
-                    drawPixelText(t.target + lvl.targetScore + " | " + t.reward + lvl.reward, 35, 99 + i * 68, 8, "left", "#
+                    drawPixelText(t.target + lvl.targetScore + " | " + t.reward + lvl.reward, 35, 99 + i * 68, 8, "left", "#F1C40F");
+                }}
+
+            }} else if (gameState === 'shop') {{
+                drawBackground();
+                drawPixelText(t.shop, canvas.width / 2, 38, 17, "center", "#F1C40F");
+                drawPixelText(t.coins + totalCoins, canvas.width / 2, 63, 11);
+
+                // Nút Lùi
+                ctx.fillStyle = "#7F8C8D";
+                ctx.fillRect(20, 15, 110, 35);
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(20, 15, 110, 35);
+                drawPixelText(t.back, 75, 38, 10);
+
+                let keys = Object.keys(skins);
+                for (let i = 0; i < keys.length; i++) {{
+                    let skinKey = keys[i];
+                    let skin = skins[skinKey];
+                    let isUnlocked = unlockedSkins.includes(skinKey);
+                    let isSelected = (currentSkin === skinKey);
+
+                    ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.8)";
+                    ctx.fillRect(15, 75 + i * 88, 370, 78);
+                    ctx.strokeStyle = isSelected ? "#2ECC71" : "#000";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(15, 75 + i * 88, 370, 78);
+
+                    let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
+                    if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(imgPreview, 25, 86 + i * 88, 65, 42);
+                    }} else {{
+                        ctx.fillStyle = skin.color;
+                        ctx.fillRect(30, 90 + i * 88, 35, 35);
+                        ctx.strokeStyle = "#000";
+                        ctx.strokeRect(30, 90 + i * 88, 35, 35);
+                    }}
+
+                    drawPixelText(skin.name, 102, 106 + i * 88, 10, "left");
+
+                    if (isSelected) {{
+                        drawPixelText(t.using, 102, 134 + i * 88, 10, "left", "#2ECC71");
+                    }} else if (isUnlocked) {{
+                        drawPixelText(t.owned, 102, 134 + i * 88, 10, "left", "#AED6F1");
+                    }} else {{
+                        drawPixelText(t.price + skin.price, 102, 134 + i * 88, 10, "left", "#F1C40F");
+                    }}
+                }}
+
+                drawConfirmationModal();
+
+            }} else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {{
+                drawBackground();
+
+                let lvl = levels[currentLevel];
+                for (let i = 0; i < pipes.length; i++) {{
+                    drawPixelPipe(pipes[i].x, pipes[i].top, pipes[i].bottom);
+                }}
+
+                drawBird();
+
+                drawPixelText("LVL:" + currentLevel + " | " + score + "/" + lvl.targetScore, 15, 30, 10, "left");
+                drawPixelText("🪙 " + totalCoins, 385, 30, 10, "right");
+
+                if (gameState === 'gameover') {{
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    drawPixelText(t.failed, canvas.width / 2, 210, 20, "center", "#E74C3C");
+                    drawPixelText(t.retry, canvas.width / 2, 260, 9);
+                }}
+
+                if (levelCompleted) {{
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    drawPixelText(t.completed, canvas.width / 2, 185, 17, "center", "#2ECC71");
+                    drawPixelText(t.earned + coinsEarnedThisRun, canvas.width / 2, 230, 11, "center", "#F1C40F");
+                    drawPixelText(t.continue, canvas.width / 2, 280, 9);
+                }}
+            }}
+        }}
+
+        function loop() {{
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }}
+
+        loop();
+    </script>
+</body>
+</html>
+"""
+
+st.components.v1.html(flappy_bird_html, height=540)
