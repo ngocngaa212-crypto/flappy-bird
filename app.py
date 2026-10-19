@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Bảng hướng dẫn đã được tinh chỉnh gọn gàng!")
+st.write("Hành trình của Tom - Nhạc nền riêng biệt cho Menu và Trò chơi!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -49,10 +49,48 @@ flappy_bird_html = f"""
     </style>
 </head>
 <body>
+    <!-- 2 Thẻ audio cho 2 nhạc nền khác nhau -->
+    <audio id="menuMusic" loop>
+        <source src="menu_music.mp3" type="audio/mp3">
+    </audio>
+    <audio id="playMusic" loop>
+        <source src="play_music.mp3" type="audio/mp3">
+    </audio>
+
     <canvas id="gameCanvas" width="400" height="500"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+
+        const menuMusic = document.getElementById("menuMusic");
+        const playMusic = document.getElementById("playMusic");
+
+        // Tự động kích hoạt phát nhạc khi người chơi tương tác đầu tiên
+        function initAudio() {{
+            if (gameState === 'menu' || gameState === 'level_select' || gameState === 'shop') {{
+                if (menuMusic.paused) {{
+                    menuMusic.play().catch(e => console.log("Menu music blocked"));
+                }}
+            }}
+            window.removeEventListener('click', initAudio);
+            window.removeEventListener('keydown', initAudio);
+        }}
+        window.addEventListener('click', initAudio);
+        window.addEventListener('keydown', initAudio);
+
+        function updateMusicState() {{
+            if (gameState === 'playing') {{
+                if (!menuMusic.paused) menuMusic.pause();
+                if (playMusic.paused) {{
+                    playMusic.play().catch(e => console.log("Play music blocked"));
+                }}
+            }} else {{
+                if (!playMusic.paused) playMusic.pause();
+                if (menuMusic.paused) {{
+                    menuMusic.play().catch(e => console.log("Menu music blocked"));
+                }}
+            }}
+        }}
 
         const bgImage1 = new Image();
         bgImage1.src = "{bg_data_url}";
@@ -268,6 +306,7 @@ flappy_bird_html = f"""
             levelCompleted = false;
             playStartTime = Date.now();
             gameState = 'playing';
+            updateMusicState();
         }}
 
         document.addEventListener("keydown", function(e) {{
@@ -276,6 +315,7 @@ flappy_bird_html = f"""
                     bird.velocity = bird.lift;
                 }} else if (gameState === 'gameover' || levelCompleted) {{
                     gameState = 'level_select';
+                    updateMusicState();
                 }}
             }}
         }});
@@ -329,9 +369,11 @@ flappy_bird_html = f"""
             if (gameState === 'menu') {{
                 if (mouseX >= 60 && mouseX <= 340 && mouseY >= 210 && mouseY <= 270) {{
                     gameState = 'level_select';
+                    updateMusicState();
                 }}
                 if (mouseX >= 60 && mouseX <= 340 && mouseY >= 290 && mouseY <= 350) {{
                     gameState = 'shop';
+                    updateMusicState();
                 }}
             }} else if (gameState === 'level_select') {{
                 for (let i = 1; i <= 5; i++) {{
@@ -343,10 +385,12 @@ flappy_bird_html = f"""
                 }}
                 if (mouseX >= 20 && mouseX <= 130 && mouseY >= 15 && mouseY <= 50) {{
                     gameState = 'menu';
+                    updateMusicState();
                 }}
             }} else if (gameState === 'shop') {{
                 if (mouseX >= 20 && mouseX <= 130 && mouseY >= 15 && mouseY <= 50) {{
                     gameState = 'menu';
+                    updateMusicState();
                 }}
                 let keys = Object.keys(skins);
                 for (let i = 0; i < keys.length; i++) {{
@@ -364,6 +408,7 @@ flappy_bird_html = f"""
                 bird.velocity = bird.lift;
             }} else if (gameState === 'gameover' || levelCompleted) {{
                 gameState = 'level_select';
+                updateMusicState();
             }}
         }});
 
@@ -388,6 +433,7 @@ flappy_bird_html = f"""
 
             if (bird.y + bird.height >= canvas.height - 45 || bird.y <= 0) {{
                 gameState = 'gameover';
+                updateMusicState();
             }}
 
             if (frameCount % lvl.spawnRate === 0) {{
@@ -406,6 +452,7 @@ flappy_bird_html = f"""
                     ((bird.y + hitboxPaddingY) < pipes[i].top || (bird.y + bird.height - hitboxPaddingY) > canvas.height - pipes[i].bottom - 45)
                 ) {{
                     gameState = 'gameover';
+                    updateMusicState();
                 }}
 
                 if (!pipes[i].passed && pipes[i].x + pipes[i].width < bird.x) {{
