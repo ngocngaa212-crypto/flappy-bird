@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom - Bảng hướng dẫn hoàn chỉnh chi tiết!")
+st.write("Hành trình của Tom - Bảng hướng dẫn đã được tinh chỉnh gọn gàng!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -14,7 +14,6 @@ def get_image_base64(image_path):
             return f"data:image/png;base64,{encoded}"
     return ""
 
-# Đọc các file ảnh từ thư mục GitHub
 bg_data_url = get_image_base64("background.png")
 bg2_data_url = get_image_base64("background2.png")
 normal_data_url = get_image_base64("cat_normal.png") if os.path.exists("cat_normal.png") else get_image_base64("bird.png")
@@ -160,10 +159,9 @@ flappy_bird_html = f"""
                 guideStep1: "• Nhấn SPACE hoặc chạm để Tom",
                 guideStep2: "  bay lên né các ống nước.",
                 guideStep3: "• Đạt điểm mục tiêu để mở màn mới.",
-                guideStep4: "• Sau 60 giây, hình nền sẽ đổi.",
-                guideStep5: "• Tích xu để đổi các skin của Tom.",
-                guideStep6: "• Hoàn thành màn 5 để giúp Tom",
-                guideStep7: "  gặp được tình yêu của anh ấy.",
+                guideStep4: "• Tích xu để đổi các skin của Tom.",
+                guideStep5: "• Hoàn thành màn 5 để giúp Tom",
+                guideStep6: "  gặp được tình yêu của anh ấy.",
                 guideWish: "Chúc bạn chơi game vui vẻ!",
                 closeBtn: "ĐÓNG",
                 lvlNames: {{
@@ -202,10 +200,9 @@ flappy_bird_html = f"""
                 guideStep1: "• Press SPACE or click to make Tom",
                 guideStep2: "  fly up and dodge pipes.",
                 guideStep3: "• Reach target scores to unlock levels.",
-                guideStep4: "• After 60s, background will change.",
-                guideStep5: "• Collect coins to change Tom's skins.",
-                guideStep6: "• Complete Level 5 to help Tom",
-                guideStep7: "  meet the love of his life.",
+                guideStep4: "• Collect coins to change Tom's skins.",
+                guideStep5: "• Complete Level 5 to help Tom",
+                guideStep6: "  meet the love of his life.",
                 guideWish: "Have fun playing the game!",
                 closeBtn: "CLOSE",
                 lvlNames: {{
@@ -560,31 +557,30 @@ flappy_bird_html = f"""
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(15, 25, 370, 450);
+            ctx.fillRect(15, 30, 370, 440);
             ctx.strokeStyle = "#2C3E50";
             ctx.lineWidth = 4;
-            ctx.strokeRect(15, 25, 370, 450);
+            ctx.strokeRect(15, 30, 370, 440);
 
-            drawCleanText(t.guideTitle, canvas.width / 2, 60, 28, "center", "#1B4F72");
+            drawCleanText(t.guideTitle, canvas.width / 2, 70, 28, "center", "#1B4F72");
 
-            let startY = 95;
-            let stepGap = 35;
+            let startY = 110;
+            let stepGap = 38;
             drawCleanText(t.guideStep1, 25, startY, 20, "left", "#2C3E50");
             drawCleanText(t.guideStep2, 25, startY + stepGap, 20, "left", "#2C3E50");
             drawCleanText(t.guideStep3, 25, startY + stepGap * 2, 20, "left", "#2C3E50");
             drawCleanText(t.guideStep4, 25, startY + stepGap * 3, 20, "left", "#2C3E50");
             drawCleanText(t.guideStep5, 25, startY + stepGap * 4, 20, "left", "#2C3E50");
             drawCleanText(t.guideStep6, 25, startY + stepGap * 5, 20, "left", "#2C3E50");
-            drawCleanText(t.guideStep7, 25, startY + stepGap * 6, 20, "left", "#2C3E50");
 
-            drawCleanText(t.guideWish, canvas.width / 2, 390, 22, "center", "#C0392B");
+            drawCleanText(t.guideWish, canvas.width / 2, 385, 22, "center", "#C0392B");
 
             ctx.fillStyle = "#E74C3C";
-            ctx.fillRect(130, 415, 140, 45);
+            ctx.fillRect(130, 410, 140, 45);
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 2;
-            ctx.strokeRect(130, 415, 140, 45);
-            drawPixelText(t.closeBtn, 200, 445, 22);
+            ctx.strokeRect(130, 410, 140, 45);
+            drawPixelText(t.closeBtn, 200, 440, 22);
         }}
 
         function drawConfirmationModal() {{
@@ -685,151 +681,4 @@ flappy_bird_html = f"""
                 ctx.strokeRect(20, 15, 110, 38);
                 drawPixelText(t.back, 75, 40, 20);
 
-                for (let i = 1; i <= 5; i++) {{
-                    let lvl = levels[i];
-                    let isUnlocked = (i <= unlockedLevel);
-
-                    ctx.fillStyle = isUnlocked ? "rgba(0, 0, 0, 0.8)" : "rgba(50, 50, 50, 0.85)";
-                    ctx.fillRect(20, 55 + i * 68, 360, 53);
-                    ctx.strokeStyle = isUnlocked ? "#2ECC71" : "#555";
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(20, 55 + i * 68, 360, 53);
-
-                    if (isUnlocked) {{
-                        drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left");
-                        drawPixelText(t.target + lvl.targetScore + " | Phần thưởng: " + lvl.reward, 35, 100 + i * 68, 16, "left", "#F1C40F");
-                        drawTomCoinIcon(325, 93 + i * 68, 8);
-                    }} else {{
-                        drawPixelText(t.lvlNames[i], 35, 80 + i * 68, 22, "left", "#888");
-                        drawPixelText(t.locked, 35, 100 + i * 68, 18, "left", "#E74C3C");
-                    }}
-                }}
-
-            }} else if (gameState === 'shop') {{
-                drawBackground();
-                drawPixelText(t.shop, canvas.width / 2, 38, 30, "center", "#F1C40F");
-                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 10, 65, 20);
-                drawTomCoinIcon(canvas.width / 2 + 48, 58, 10);
-
-                ctx.fillStyle = "#7F8C8D";
-                ctx.fillRect(20, 15, 110, 38);
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(20, 15, 110, 38);
-                drawPixelText(t.back, 75, 40, 20);
-
-                let keys = Object.keys(skins);
-                for (let i = 0; i < keys.length; i++) {{
-                    let skinKey = keys[i];
-                    let skin = skins[skinKey];
-                    let isUnlocked = unlockedSkins.includes(skinKey);
-                    let isSelected = (currentSkin === skinKey);
-
-                    ctx.fillStyle = isSelected ? "#27AE60" : "rgba(0, 0, 0, 0.8)";
-                    ctx.fillRect(15, 75 + i * 88, 370, 78);
-                    ctx.strokeStyle = isSelected ? "#2ECC71" : "#000";
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(15, 75 + i * 88, 370, 78);
-
-                    let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
-                    if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
-                        ctx.imageSmoothingEnabled = false;
-                        ctx.drawImage(imgPreview, 25, 86 + i * 88, 65, 42);
-                    }} else {{
-                        ctx.fillStyle = skin.color;
-                        ctx.fillRect(30, 90 + i * 88, 35, 35);
-                        ctx.strokeStyle = "#000";
-                        ctx.strokeRect(30, 90 + i * 88, 35, 35);
-                    }}
-
-                    drawPixelText(skin.name, 102, 106 + i * 88, 22, "left");
-
-                    if (isSelected) {{
-                        drawPixelText(t.using, 102, 134 + i * 88, 20, "left", "#2ECC71");
-                    }} else if (isUnlocked) {{
-                        drawPixelText(t.owned, 102, 134 + i * 88, 20, "left", "#AED6F1");
-                    }} else {{
-                        drawPixelText(t.price + skin.price, 102, 134 + i * 88, 20, "left", "#F1C40F");
-                        drawTomCoinIcon(225 + skin.price.toString().length * 10, 127 + i * 88, 8);
-                    }}
-                }}
-
-                drawConfirmationModal();
-
-            }} else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {{
-                drawBackground();
-
-                let lvl = levels[currentLevel];
-                for (let i = 0; i < pipes.length; i++) {{
-                    drawPixelPipe(pipes[i].x, pipes[i].top, pipes[i].bottom);
-                }}
-
-                drawBird();
-
-                drawPixelText("LVL:" + currentLevel + " | " + score + "/" + lvl.targetScore, 15, 30, 22, "left");
-                
-                drawPixelText(totalCoins.toString(), 360, 30, 22, "right");
-                drawTomCoinIcon(375, 23, 10);
-
-                if (gameState === 'gameover') {{
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawPixelText(t.failed, canvas.width / 2, 210, 36, "center", "#E74C3C");
-                    drawPixelText(t.retry, canvas.width / 2, 260, 20);
-                }}
-
-                if (levelCompleted) {{
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    if (currentLevel === 5) {{
-                        drawPixelText(t.meetAngelaLine1, canvas.width / 2, 75, 22, "center", "#F1C40F");
-                        drawPixelText(t.meetAngelaLine2, canvas.width / 2, 100, 22, "center", "#F1C40F");
-
-                        ctx.imageSmoothingEnabled = false;
-                        let tomImg = cleanedSkinCanvases[currentSkin] || skinImages[currentSkin];
-                        if (tomImg && (tomImg.complete || tomImg.width)) {{
-                            ctx.drawImage(tomImg, 90, 130, 100, 60);
-                        }}
-                        let angelaImgToDraw = cleanedAngelaCanvas || angelaImage;
-                        if (angelaImgToDraw && (angelaImgToDraw.complete || angelaImgToDraw.width)) {{
-                            ctx.drawImage(angelaImgToDraw, 210, 130, 100, 60);
-                        }} else {{
-                            ctx.fillStyle = "#FFC0CB";
-                            ctx.fillRect(210, 130, 100, 60);
-                        }}
-
-                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 15, 230, 22, "center", "#2ECC71");
-                        drawTomCoinIcon(canvas.width / 2 + 115, 223, 10);
-
-                        drawPixelText(t.continue, canvas.width / 2, 290, 22);
-
-                    }} else {{
-                        drawPixelText(t.passLevel + currentLevel, canvas.width / 2, 110, 28, "center", "#2ECC71");
-                        
-                        drawPixelText(t.reward + coinsEarnedThisRun, canvas.width / 2 - 20, 175, 22, "center", "#F1C40F");
-                        drawTomCoinIcon(canvas.width / 2 + 105, 168, 10);
-                        
-                        if (currentLevel < 5) {{
-                            drawPixelText(t.unlockedNext, canvas.width / 2, 230, 20, "center", "#3498DB");
-                        }}
-                        
-                        drawPixelText(t.continue, canvas.width / 2, 290, 20);
-                    }}
-                }}
-            }}
-        }}
-
-        function loop() {{
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }}
-
-        loop();
-    </script>
-</body>
-</html>
-"""
-
-st.components.v1.html(flappy_bird_html, height=540)
+                for (let i = 1; i <= 5
