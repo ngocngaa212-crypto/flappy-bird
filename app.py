@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="The journey of Tom", page_icon="🐱", layout="centered")
 
 st.title("🐱 The journey of Tom - Pixel Edition")
-st.write("Hành trình của Tom với hệ thống Cửa Hàng Skin độc đáo!")
+st.write("Hành trình của Tom với Cửa hàng nâng cấp & Hộp thoại xác nhận mua Skin!")
 
 def get_image_base64(image_path):
     if os.path.exists(image_path):
@@ -18,7 +18,7 @@ def get_image_base64(image_path):
 bg_data_url = get_image_base64("background.png")
 normal_data_url = get_image_base64("cat_normal.png") if os.path.exists("cat_normal.png") else get_image_base64("bird.png")
 
-# Đọc 3 file ảnh skin theo đúng tên file bạn đã đặt
+# Đọc 3 file ảnh skin theo đúng tên file
 rainbow_data_url = get_image_base64("rainbow_Tom.png")
 donut_data_url = get_image_base64("Tom_with_donut.png")
 strong_data_url = get_image_base64("super_strong_Tom.png")
@@ -105,7 +105,6 @@ flappy_bird_html = f"""
         let unlockedSkins = JSON.parse(localStorage.getItem("tom_skins")) || ["normal"];
         let currentSkin = localStorage.getItem("tom_current_skin") || "normal";
 
-        // Thiết lập 4 Skin (1 mặc định + 3 skin trong cửa hàng với mức giá yêu cầu)
         const skins = {{
             "normal": {{ name: "normal tom", price: 0, color: "#F4D03F" }},
             "rainbow": {{ name: "rainbow Tom", price: 50, color: "#9B59B6" }},
@@ -114,12 +113,13 @@ flappy_bird_html = f"""
         }};
 
         let gameState = 'menu';
+        let pendingBuySkinKey = null; // Trạng thái skin đang chờ xác nhận mua
 
         let bird = {{
             x: 30,
             y: 150,
-            width: 110,
-            height: 66,
+            width: 125,   /* Phóng to nhân vật Tom trong game */
+            height: 75,
             gravity: 0.42, 
             lift: -8.2,      
             velocity: 0
@@ -127,11 +127,11 @@ flappy_bird_html = f"""
 
         let currentLevel = 1;
         const levels = {{
-            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 195, spawnRate: 120, targetScore: 3, reward: 15 }},
-            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 185, spawnRate: 110, targetScore: 5, reward: 30 }},
-            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 175, spawnRate: 100, targetScore: 8, reward: 50 }},
-            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 165, spawnRate: 90, targetScore: 12, reward: 80 }},
-            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 155, spawnRate: 80, targetScore: 15, reward: 120 }}
+            1: {{ name: "Cấp 1: Khởi Đầu", speed: 1.5, gap: 200, spawnRate: 120, targetScore: 3, reward: 15 }},
+            2: {{ name: "Cấp 2: Vượt Thác", speed: 1.8, gap: 190, spawnRate: 110, targetScore: 5, reward: 30 }},
+            3: {{ name: "Cấp 3: Rừng Sâu", speed: 2.1, gap: 180, spawnRate: 100, targetScore: 8, reward: 50 }},
+            4: {{ name: "Cấp 4: Thử Thách", speed: 2.4, gap: 170, spawnRate: 90, targetScore: 12, reward: 80 }},
+            5: {{ name: "Cấp 5: Đỉnh Cao", speed: 2.8, gap: 160, spawnRate: 80, targetScore: 15, reward: 120 }}
         }};
 
         let pipes = [];
@@ -167,6 +167,30 @@ flappy_bird_html = f"""
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
+            if (pendingBuySkinKey) {{
+                // Xử lý click trong bảng thông báo xác nhận
+                // Nút ĐỒNG Ý MUA (X: 50-180, Y: 330-375)
+                if (mouseX >= 50 && mouseX <= 180 && mouseY >= 330 && mouseY <= 375) {{
+                    let skin = skins[pendingBuySkinKey];
+                    if (totalCoins >= skin.price) {{
+                        totalCoins -= skin.price;
+                        unlockedSkins.push(pendingBuySkinKey);
+                        currentSkin = pendingBuySkinKey;
+                        localStorage.setItem("tom_coins", totalCoins);
+                        localStorage.setItem("tom_skins", JSON.stringify(unlockedSkins));
+                        localStorage.setItem("tom_current_skin", currentSkin);
+                    }} else {{
+                        alert("Bạn không đủ tiền xu!");
+                    }}
+                    pendingBuySkinKey = null;
+                }}
+                // Nút HỦY (X: 220-350, Y: 330-375)
+                else if (mouseX >= 220 && mouseX <= 350 && mouseY >= 330 && mouseY <= 375) {{
+                    pendingBuySkinKey = null;
+                }}
+                return;
+            }}
+
             if (gameState === 'menu') {{
                 if (mouseX >= 80 && mouseX <= 320 && mouseY >= 220 && mouseY <= 270) {{
                     gameState = 'level_select';
@@ -195,17 +219,8 @@ flappy_bird_html = f"""
                             currentSkin = skinKey;
                             localStorage.setItem("tom_current_skin", currentSkin);
                         }} else {{
-                            let skin = skins[skinKey];
-                            if (totalCoins >= skin.price) {{
-                                totalCoins -= skin.price;
-                                unlockedSkins.push(skinKey);
-                                currentSkin = skinKey;
-                                localStorage.setItem("tom_coins", totalCoins);
-                                localStorage.setItem("tom_skins", JSON.stringify(unlockedSkins));
-                                localStorage.setItem("tom_current_skin", currentSkin);
-                            }} else {{
-                                alert("Bạn không đủ tiền xu để mua skin này!");
-                            }}
+                            // Mở popup xác nhận mua
+                            pendingBuySkinKey = skinKey;
                         }}
                     }}
                 }}
@@ -229,7 +244,7 @@ flappy_bird_html = f"""
         }}
 
         function update() {{
-            if (gameState !== 'playing') return;
+            if (gameState !== 'playing' || pendingBuySkinKey) return;
 
             let lvl = levels[currentLevel];
             bird.velocity += bird.gravity;
@@ -243,8 +258,8 @@ flappy_bird_html = f"""
                 spawnPipe();
             }}
 
-            let hitboxPaddingX = 18;
-            let hitboxPaddingY = 10;
+            let hitboxPaddingX = 20;
+            let hitboxPaddingY = 12;
 
             for (let i = pipes.length - 1; i >= 0; i--) {{
                 pipes[i].x -= lvl.speed;
@@ -353,6 +368,61 @@ flappy_bird_html = f"""
             }}
         }}
 
+        function drawConfirmationModal() {{
+            if (!pendingBuySkinKey) return;
+            let skin = skins[pendingBuySkinKey];
+
+            // Phủ lớp xám mờ màn hình
+            ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Bảng thông báo chính
+            ctx.fillStyle = "#2C3E50";
+            ctx.fillRect(25, 90, 350, 310);
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(25, 90, 350, 310);
+
+            drawPixelText("XAC NHAN MUA", canvas.width / 2, 125, 12);
+
+            // Hiển thị hình ảnh Skin siêu to, rõ nét ngay giữa bảng
+            let imgPreview = cleanedSkinCanvases[pendingBuySkinKey] || skinImages[pendingBuySkinKey];
+            if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
+                ctx.imageSmoothingEnabled = false;
+                // Khung viền cho hình ảnh
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(140, 145, 120, 75);
+                ctx.strokeStyle = "#F1C40F";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(140, 145, 120, 75);
+                ctx.drawImage(imgPreview, 145, 150, 110, 65);
+            }}
+
+            drawPixelText("Ban co muc mua:", canvas.width / 2, 248, 8);
+            
+            ctx.font = "9px 'Press Start 2P'";
+            ctx.fillStyle = "#3498DB";
+            ctx.textAlign = "center";
+            ctx.fillText(skin.name + "?", canvas.width / 2, 270);
+
+            ctx.fillStyle = "#F1C40F";
+            ctx.fillText("Gia: 🪙 " + skin.price, canvas.width / 2, 295);
+
+            // Nút ĐỒNG Ý MUA
+            ctx.fillStyle = "#27AE60";
+            ctx.fillRect(50, 330, 130, 45);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, 330, 130, 45);
+            drawPixelText("MUA", 115, 358, 10);
+
+            // Nút HỦY
+            ctx.fillStyle = "#C0392B";
+            ctx.fillRect(220, 330, 130, 45);
+            ctx.strokeRect(220, 330, 130, 45);
+            drawPixelText("HUY", 285, 358, 10);
+        }}
+
         function draw() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -416,32 +486,35 @@ flappy_bird_html = f"""
                     ctx.fillRect(20, 75 + i * 85, 360, 72);
                     ctx.strokeRect(20, 75 + i * 85, 360, 72);
 
-                    // Xem trước hình ảnh Skin trong Cửa Hàng
+                    // Xem trước hình ảnh Skin trong Cửa Hàng (Hiển thị to & rõ hơn)
                     let imgPreview = cleanedSkinCanvases[skinKey] || skinImages[skinKey];
                     if (imgPreview && (imgPreview.complete || imgPreview.width)) {{
                         ctx.imageSmoothingEnabled = false;
-                        ctx.drawImage(imgPreview, 30, 88 + i * 85, 48, 30);
+                        ctx.drawImage(imgPreview, 28, 85 + i * 85, 60, 38);
                     }} else {{
                         ctx.fillStyle = skin.color;
-                        ctx.fillRect(35, 90 + i * 85, 26, 26);
+                        ctx.fillRect(35, 90 + i * 85, 30, 30);
                         ctx.strokeStyle = "#000";
-                        ctx.strokeRect(35, 90 + i * 85, 26, 26);
+                        ctx.strokeRect(35, 90 + i * 85, 30, 30);
                     }}
 
-                    drawPixelText(skin.name, 92, 104 + i * 85, 8, "left");
+                    drawPixelText(skin.name, 98, 104 + i * 85, 8, "left");
 
                     ctx.font = "7px 'Press Start 2P'";
                     if (isSelected) {{
                         ctx.fillStyle = "#2ECC71";
-                        ctx.fillText("DANG DUNG", 92, 128 + i * 85);
+                        ctx.fillText("DANG DUNG", 98, 128 + i * 85);
                     }} else if (isUnlocked) {{
                         ctx.fillStyle = "#AED6F1";
-                        ctx.fillText("DA SO HUU", 92, 128 + i * 85);
+                        ctx.fillText("DA SO HUU", 98, 128 + i * 85);
                     }} else {{
                         ctx.fillStyle = "#F1C40F";
-                        ctx.fillText("Gia: 🪙 " + skin.price, 92, 128 + i * 85);
+                        ctx.fillText("Gia: 🪙 " + skin.price, 98, 128 + i * 85);
                     }}
                 }}
+
+                // Vẽ Bảng xác nhận mua nếu người chơi bấm chọn skin chưa mua
+                drawConfirmationModal();
 
             }} else if (gameState === 'playing' || gameState === 'gameover' || levelCompleted) {{
                 drawBackground();
