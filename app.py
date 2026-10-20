@@ -44,6 +44,8 @@ flappy_bird_html = f"""
     <meta charset="UTF-8">
     <title>The journey of Tom</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
         body {{
             margin: 0;
             background: #111;
@@ -436,41 +438,34 @@ flappy_bird_html = f"""
             let mouseY = e.clientY - rect.top;
 
             if (showAudioModal) {{
-                // Nút Đóng (Đóng bảng cài đặt âm thanh)
                 if (mouseX >= 125 && mouseX <= 275 && mouseY >= 395 && mouseY <= 445) {{
                     showAudioModal = false;
                 }}
-                // Nút Bật/Tắt Nhạc nền (Music)
                 if (mouseX >= 220 && mouseX <= 350 && mouseY >= 112 && mouseY <= 148) {{
                     musicMuted = !musicMuted;
                     localStorage.setItem("tom_music_muted", musicMuted);
                     updateMusicState();
                 }}
-                // Nút Giảm âm lượng nhạc (-)
                 if (mouseX >= 170 && mouseX <= 215 && mouseY >= 160 && mouseY <= 202) {{
                     musicVolume = Math.max(0, musicVolume - 0.1);
                     localStorage.setItem("tom_music_vol", musicVolume);
                     updateMusicState();
                 }}
-                // Nút Tăng âm lượng nhạc (+)
                 if (mouseX >= 310 && mouseX <= 355 && mouseY >= 160 && mouseY <= 202) {{
                     musicVolume = Math.min(1, musicVolume + 0.1);
                     localStorage.setItem("tom_music_vol", musicVolume);
                     updateMusicState();
                 }}
-                // Nút Bật/Tắt Hiệu ứng (SFX)
                 if (mouseX >= 220 && mouseX <= 350 && mouseY >= 212 && mouseY <= 248) {{
                     sfxMuted = !sfxMuted;
                     localStorage.setItem("tom_sfx_muted", sfxMuted);
                     applyVolumes();
                 }}
-                // Nút Giảm âm lượng hiệu ứng (-)
                 if (mouseX >= 170 && mouseX <= 215 && mouseY >= 260 && mouseY <= 302) {{
                     sfxVolume = Math.max(0, sfxVolume - 0.1);
                     localStorage.setItem("tom_sfx_vol", sfxVolume);
                     applyVolumes();
                 }}
-                // Nút Tăng âm lượng hiệu ứng (+)
                 if (mouseX >= 310 && mouseX <= 355 && mouseY >= 260 && mouseY <= 302) {{
                     sfxVolume = Math.min(1, sfxVolume + 0.1);
                     localStorage.setItem("tom_sfx_vol", sfxVolume);
@@ -684,13 +679,28 @@ flappy_bird_html = f"""
             ctx.restore();
         }}
 
-        // Hàm vẽ chữ rõ nét có thêm hiệu ứng đổ bóng (shadow) đẹp mắt
+        // Hàm vẽ chữ Pixel cho Menu chính (giống hình 1)
+        function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
+            ctx.save();
+            ctx.font = "bold " + size + "px 'Press Start 2P', monospace";
+            ctx.textAlign = align;
+            
+            ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }}
+
+        // Hàm vẽ chữ tiêu chuẩn rõ ràng cho các màn chơi và bảng phụ (giống hình 2)
         function drawCleanText(text, x, y, size, align = "center", textColor = "#1B2631", isBold = true) {{
             ctx.save();
             ctx.font = (isBold ? "600 " : "") + size + "px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
             ctx.textAlign = align;
             
-            // Thêm hiệu ứng đổ bóng cho chữ nổi bật và sắc nét
             ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
             ctx.shadowBlur = 4;
             ctx.shadowOffsetX = 1;
@@ -890,43 +900,44 @@ flappy_bird_html = f"""
 
             if (gameState === 'menu') {{
                 drawBackground();
-                drawCleanText("JOURNEY OF TOM", canvas.width / 2, 115, 26, "center", "#F1C40F", true);
+                // Màn hình chính dùng phông chữ Pixel giống hình 1
+                drawPixelText("JOURNEY OF TOM", canvas.width / 2, 115, 20, "center", "#F1C40F");
                 
-                drawCleanText(t.coins + totalCoins, canvas.width / 2 - 15, 165, 18, "center", "#FFFFFF", true);
-                drawTomCoinIcon(canvas.width / 2 + 75, 158, 11);
+                drawPixelText(t.coins + totalCoins, canvas.width / 2 - 15, 165, 14);
+                drawTomCoinIcon(canvas.width / 2 + 65, 158, 11);
 
                 ctx.fillStyle = (musicMuted && sfxMuted) ? "#C0392B" : "#27AE60";
                 ctx.fillRect(160, 15, 42, 38);
                 ctx.strokeStyle = "#FFF";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(160, 15, 42, 38);
-                drawCleanText("🔊", 181, 41, 18, "center", "#FFFFFF", true);
+                drawPixelText("🔊", 181, 41, 16);
 
                 ctx.fillStyle = "#D35400";
                 ctx.fillRect(215, 15, 42, 38);
                 ctx.strokeStyle = "#FFF";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(215, 15, 42, 38);
-                drawCleanText("📖", 236, 41, 18, "center", "#FFFFFF", true);
+                drawPixelText("📖", 236, 41, 16);
 
                 ctx.fillStyle = "#8E44AD";
                 ctx.fillRect(270, 15, 90, 38);
                 ctx.strokeStyle = "#FFF";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(270, 15, 90, 38);
-                drawCleanText((currentLang === "vi" ? "VI" : "EN"), 315, 41, 16, "center", "#FFFFFF", true);
+                drawPixelText((currentLang === "vi" ? "VI" : "EN"), 315, 41, 14);
 
                 ctx.fillStyle = "#27AE60";
                 ctx.fillRect(60, 210, 280, 60);
                 ctx.strokeStyle = "#000";
                 ctx.lineWidth = 4;
                 ctx.strokeRect(60, 210, 280, 60);
-                drawCleanText(t.play, canvas.width / 2, 248, 20, "center", "#FFFFFF", true);
+                drawPixelText(t.play, canvas.width / 2, 248, 16);
 
                 ctx.fillStyle = "#2980B9";
                 ctx.fillRect(60, 290, 280, 60);
                 ctx.strokeRect(60, 290, 280, 60);
-                drawCleanText(t.shop, canvas.width / 2, 328, 20, "center", "#FFFFFF", true);
+                drawPixelText(t.shop, canvas.width / 2, 328, 16);
 
                 drawGuideModal();
                 drawAudioModal();
