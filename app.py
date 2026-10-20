@@ -272,7 +272,7 @@ flappy_bird_html = f"""
                 back: "<- LÙI",
                 coins: "XU: ",
                 target: "Mục tiêu: ",
-                reward: "Thưởng: ",
+                reward: "Phần thưởng: ",
                 using: "ĐANG DÙNG",
                 owned: "ĐÃ SỞ HỮU",
                 price: "GIÁ: ",
@@ -287,19 +287,19 @@ flappy_bird_html = f"""
                 meetAngelaLine2: "gặp được tình yêu của anh ấy!",
                 continue: "Nhấn Space để tiếp tục",
                 notEnoughCoins: "Bạn không đủ xu!",
-                locked: "🔒 KHÓA",
+                locked: "🔒 BỊ KHÓA",
                 unlockedNext: "Đã mở khóa màn tiếp theo!",
                 audioTitle: "CÀI ĐẶT ÂM THANH",
-                bgMusicLabel: "Nhạc nền:",
-                sfxLabel: "Hiệu ứng:",
+                bgMusicLabel: "Nhạc nền (Music):",
+                sfxLabel: "Hiệu ứng (SFX):",
                 closeBtn: "ĐÓNG",
                 guideTitle: "HƯỚNG DẪN CHƠI",
-                guideStep1: "• Nhấn SPACE hoặc chạm",
-                guideStep2: "  để Tom bay lên.",
-                guideStep3: "• Đạt điểm để mở màn mới.",
-                guideStep4: "• Tích xu đổi skin cho Tom.",
-                guideStep5: "• Hoàn thành màn 5 để",
-                guideStep6: "  giúp Tom gặp Angela.",
+                guideStep1: "• Nhấn SPACE hoặc chạm để Tom",
+                guideStep2: "  bay lên né các ống nước.",
+                guideStep3: "• Đạt điểm mục tiêu để mở màn.",
+                guideStep4: "• Tích xu để đổi các skin của Tom.",
+                guideStep5: "• Hoàn thành màn 5 để giúp Tom",
+                guideStep6: "  gặp Angela tình yêu của mình.",
                 guideWish: "Chúc bạn chơi game vui vẻ!",
                 lvlNames: {{
                     1: "CẤP 1: KHỞI ĐẦU",
@@ -320,30 +320,30 @@ flappy_bird_html = f"""
                 using: "EQUIPPED",
                 owned: "OWNED",
                 price: "PRICE: ",
-                confirmTitle: "CONFIRM",
-                confirmAsk: "Are you sure to buy?",
+                confirmTitle: "CONFIRM PURCHASE",
+                confirmAsk: "Are you sure you want to buy?",
                 buy: "BUY",
                 cancel: "CANCEL",
                 failed: "GAME OVER!",
                 retry: "Press Space to retry",
                 passLevel: "LEVEL PASSED ",
-                meetAngelaLine1: "Complete Level 5 to help Tom",
+                meetAngelaLine1: "Completed Level 5 to help Tom",
                 meetAngelaLine2: "meet the love of his life!",
                 continue: "Press Space to continue",
                 notEnoughCoins: "Not enough coins!",
                 locked: "🔒 LOCKED",
                 unlockedNext: "Unlocked Next Level!",
                 audioTitle: "AUDIO SETTINGS",
-                bgMusicLabel: "Music:",
-                sfxLabel: "SFX:",
+                bgMusicLabel: "Background Music:",
+                sfxLabel: "Sound Effects (SFX):",
                 closeBtn: "CLOSE",
                 guideTitle: "GAME GUIDE",
-                guideStep1: "• Press SPACE or click",
-                guideStep2: "  to make Tom fly up.",
-                guideStep3: "• Reach target scores.",
-                guideStep4: "• Collect coins for skins.",
-                guideStep5: "• Complete Level 5 to",
-                guideStep6: "  meet Angela.",
+                guideStep1: "• Press SPACE or click to make Tom",
+                guideStep2: "  fly up and dodge pipes.",
+                guideStep3: "• Reach target scores to unlock levels.",
+                guideStep4: "• Collect coins to change Tom's skins.",
+                guideStep5: "• Complete Level 5 to help Tom",
+                guideStep6: "  meet the love of his life.",
                 guideWish: "Have fun playing the game!",
                 lvlNames: {{
                     1: "LEVEL 1: BEGINNING",
@@ -382,6 +382,7 @@ flappy_bird_html = f"""
         }};
 
         let currentLevel = 1;
+        // Đã tăng độ khó cho màn 4 và màn 5 (tăng tốc độ, thu hẹp khe ống, tăng mục tiêu)
         const levels = {{
             1: {{ speed: 1.2, gap: 240, spawnRate: 130, targetScore: 10, reward: 15 }},
             2: {{ speed: 1.35, gap: 230, spawnRate: 120, targetScore: 20, reward: 30 }},
@@ -677,7 +678,6 @@ flappy_bird_html = f"""
             ctx.restore();
         }}
 
-        // Hàm vẽ chữ với phông chữ tiêu chuẩn cực kỳ dễ đọc
         function drawCleanText(text, x, y, size, align = "center", textColor = "#1B2631", isBold = true) {{
             ctx.save();
             ctx.font = (isBold ? "600 " : "") + size + "px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
