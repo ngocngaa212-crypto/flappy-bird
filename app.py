@@ -43,7 +43,6 @@ flappy_bird_html = f"""
 <head>
     <meta charset="UTF-8">
     <title>The journey of Tom</title>
-    <!-- Nhúng phông chữ Pixel cổ điển từ Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {{
@@ -284,7 +283,7 @@ flappy_bird_html = f"""
                 cancel: "HUY",
                 failed: "THAT BAI!",
                 retry: "Nhan Space de thu lai",
-                passLevel: "VUOT ANH ",
+                passLevel: "VUOT AI ",
                 meetAngelaLine1: "Hoan thanh man 5 de giup Tom",
                 meetAngelaLine2: "gap duoc tinh yeu cua anh ay!",
                 continue: "Nhan Space de tiep tuc",
@@ -376,15 +375,14 @@ flappy_bird_html = f"""
         let bird = {{
             x: 30,
             y: 150,
-            width: 125,
-            height: 75,
+            width: 95,   /* Đã thu ngắn chiều dài nhân vật lại từ 125 xuống 95 */
+            height: 60,  /* Tỉ lệ chiều cao đi kèm tương ứng */
             gravity: 0.28,
             lift: -6.8,
             velocity: 0
         }};
 
         let currentLevel = 1;
-        // Đã tăng độ khó cho Màn 4 và Màn 5 (Tăng tốc độ, thu hẹp khe hở, tăng điểm mục tiêu)
         const levels = {{
             1: {{ speed: 1.2, gap: 240, spawnRate: 130, targetScore: 10, reward: 15 }},
             2: {{ speed: 1.35, gap: 230, spawnRate: 120, targetScore: 20, reward: 30 }},
@@ -594,8 +592,8 @@ flappy_bird_html = f"""
                 spawnPipe();
             }}
 
-            let hitboxPaddingX = 22;
-            let hitboxPaddingY = 14;
+            let hitboxPaddingX = 16;
+            let hitboxPaddingY = 10;
 
             for (let i = pipes.length - 1; i >= 0; i--) {{
                 pipes[i].x -= lvl.speed;
@@ -680,7 +678,6 @@ flappy_bird_html = f"""
             ctx.restore();
         }}
 
-        // Hàm vẽ phông chữ chuẩn Pixel
         function drawPixelText(text, x, y, size, align = "center", textColor = "#FFFFFF") {{
             ctx.save();
             ctx.font = size + "px 'Press Start 2P', monospace";
